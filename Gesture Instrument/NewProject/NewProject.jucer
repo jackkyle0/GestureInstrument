@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="d3JtzM" name="GestureInstrument" projectType="audioplug"
+              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1"
+              pluginCharacteristicsValue="pluginIsMidiEffectPlugin,pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn">
+  <MAINGROUP id="JMLeXV" name="GestureInstrument">
+    <GROUP id="{46B6B3BC-3658-09F8-7A13-6D04B3BB3411}" name="Source">
+      <FILE id="Rlzenp" name="HandData.h" compile="0" resource="0" file="Source/HandData.h"/>
+      <FILE id="DlXLUZ" name="LeapService.cpp" compile="1" resource="0" file="Source/LeapService.cpp"/>
+      <FILE id="wB4evg" name="LeapService.h" compile="0" resource="0" file="Source/LeapService.h"/>
+      <FILE id="Tc3miR" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="nfdHgs" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
+      <FILE id="BqwkIY" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="ji42hQ" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_midi_ci" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="GestureInstrument" headerPath="&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/include&quot;&#10;&quot;Source/Helpers&quot;"
+                       libraryPath="&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;"
+                       extraLinkerFlags="LeapC.lib&#10;"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="GestureInstrument" extraLinkerFlags="LeapC.lib&#10;"
+                       libraryPath="&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;"
+                       headerPath="&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/include&quot;&#10;&#10;&quot;Source/Helpers&quot;"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_midi_ci" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+        <MODULEPATH id="juce_osc" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2022>
+  </EXPORTFORMATS>
+</JUCERPROJECT>

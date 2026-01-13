@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio Version 17
+
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GestureInstrument - Standalone Plugin", "GestureInstrument_StandalonePlugin.vcxproj", "{97779225-0643-44E5-95D7-F1784B3EAD34}"
+	ProjectSection(ProjectDependencies) = postProject
+		{95A78504-68FE-4F34-B551-5FAE45FA6D17} = {95A78504-68FE-4F34-B551-5FAE45FA6D17}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GestureInstrument - VST3", "GestureInstrument_VST3.vcxproj", "{04232C79-3718-92A6-8731-CAF3029FFE7C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{95A78504-68FE-4F34-B551-5FAE45FA6D17} = {95A78504-68FE-4F34-B551-5FAE45FA6D17}
+		{88ACB3C1-D670-E990-1916-74F49B2FE9DE} = {88ACB3C1-D670-E990-1916-74F49B2FE9DE}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GestureInstrument - Shared Code", "GestureInstrument_SharedCode.vcxproj", "{95A78504-68FE-4F34-B551-5FAE45FA6D17}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GestureInstrument - VST3 Manifest Helper", "GestureInstrument_VST3ManifestHelper.vcxproj", "{88ACB3C1-D670-E990-1916-74F49B2FE9DE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{04232C79-3718-92A6-8731-CAF3029FFE7C}.Debug|x64.ActiveCfg = Debug|x64
+		{04232C79-3718-92A6-8731-CAF3029FFE7C}.Debug|x64.Build.0 = Debug|x64
+		{04232C79-3718-92A6-8731-CAF3029FFE7C}.Release|x64.ActiveCfg = Release|x64
+		{04232C79-3718-92A6-8731-CAF3029FFE7C}.Release|x64.Build.0 = Release|x64
+		{97779225-0643-44E5-95D7-F1784B3EAD34}.Debug|x64.ActiveCfg = Debug|x64
+		{97779225-0643-44E5-95D7-F1784B3EAD34}.Debug|x64.Build.0 = Debug|x64
+		{97779225-0643-44E5-95D7-F1784B3EAD34}.Release|x64.ActiveCfg = Release|x64
+		{97779225-0643-44E5-95D7-F1784B3EAD34}.Release|x64.Build.0 = Release|x64
+		{95A78504-68FE-4F34-B551-5FAE45FA6D17}.Debug|x64.ActiveCfg = Debug|x64
+		{95A78504-68FE-4F34-B551-5FAE45FA6D17}.Debug|x64.Build.0 = Debug|x64
+		{95A78504-68FE-4F34-B551-5FAE45FA6D17}.Release|x64.ActiveCfg = Release|x64
+		{95A78504-68FE-4F34-B551-5FAE45FA6D17}.Release|x64.Build.0 = Release|x64
+		{88ACB3C1-D670-E990-1916-74F49B2FE9DE}.Debug|x64.ActiveCfg = Debug|x64
+		{88ACB3C1-D670-E990-1916-74F49B2FE9DE}.Debug|x64.Build.0 = Debug|x64
+		{88ACB3C1-D670-E990-1916-74F49B2FE9DE}.Release|x64.ActiveCfg = Release|x64
+		{88ACB3C1-D670-E990-1916-74F49B2FE9DE}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
