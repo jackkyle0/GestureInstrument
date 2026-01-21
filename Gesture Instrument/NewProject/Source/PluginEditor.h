@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "HandData.h"
+#include "SettingsComponent.h"
 
 class GestureInstrumentAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer, public juce::ComboBox::Listener
 {
@@ -21,21 +22,15 @@ public:
 private:
     GestureInstrumentAudioProcessor& audioProcessor;
     
-    juce::Slider sensitivitySlider;
-    juce::Label sensitivityLabel;
-    
-    juce::Slider minThresholdSlider;
-    juce::Label minThresholdLabel;
-
-    juce::Slider maxThresholdSlider;
-    juce::Label maxThresholdLabel;
-    
     juce::Label connectionStatusLabel;
     void drawHand(juce::Graphics& g, const HandData& hand, juce::Colour colour, juce::String label);
     void drawGrid(juce::Graphics& g);
 
     juce::ComboBox modeSelector;
     juce::Label modeLabel;
+
+    juce::TextButton settingsButton{ "Settings" };
+    SettingsComponent settingsPage;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GestureInstrumentAudioProcessorEditor)
 };

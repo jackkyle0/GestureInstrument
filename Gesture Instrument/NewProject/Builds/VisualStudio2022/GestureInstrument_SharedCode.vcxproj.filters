@@ -673,6 +673,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\SettingsComponent.cpp">
+      <Filter>GestureInstrument\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\LeapService.cpp">
       <Filter>GestureInstrument\Source</Filter>
     </ClCompile>
@@ -3621,6 +3624,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\SettingsComponent.h">
+      <Filter>GestureInstrument\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\OscManager.h">
       <Filter>GestureInstrument\Source</Filter>
     </ClInclude>

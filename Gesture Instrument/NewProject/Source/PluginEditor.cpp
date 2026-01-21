@@ -2,7 +2,7 @@
 #include "PluginEditor.h"
 
 GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor (GestureInstrumentAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p), settingsPage(p)
 {
     // Output Box MIDI/OSC
     addAndMakeVisible(modeSelector);
@@ -20,41 +20,31 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor (Ge
     modeLabel.setText("Output Mode:", juce::dontSendNotification);
     modeLabel.attachToComponent(&modeSelector, true);
 
-
-    // Sensitivity
-    addAndMakeVisible(sensitivitySlider);
-    sensitivitySlider.setRange(0.1, 5.0, 0.1);
-    sensitivitySlider.setValue(audioProcessor.sensitivityLevel);
-    sensitivitySlider.setTextBoxStyle(juce::Slider::TextBoxLeft, false, 50, 20);
-    sensitivitySlider.onValueChange = [this] { audioProcessor.sensitivityLevel = (int)sensitivitySlider.getValue(); };
-
-    addAndMakeVisible(sensitivityLabel);
-    sensitivityLabel.setText("Sensitivity", juce::dontSendNotification);
-
-    // Min Height
-    addAndMakeVisible(minThresholdSlider);
-    minThresholdSlider.setRange(0.0, 200.0, 1.0);
-    minThresholdSlider.setValue(audioProcessor.minHeightThreshold);
-    minThresholdSlider.onValueChange = [this] { audioProcessor.minHeightThreshold = minThresholdSlider.getValue(); };
-
-    addAndMakeVisible(minThresholdLabel);
-    minThresholdLabel.setText("Min Height", juce::dontSendNotification);
-
-    // Max Height
-    addAndMakeVisible(maxThresholdSlider);
-    maxThresholdSlider.setRange(200.0, 600.0, 1.0);
-    maxThresholdSlider.setValue(audioProcessor.maxHeightThreshold);
-    maxThresholdSlider.onValueChange = [this] { audioProcessor.maxHeightThreshold = maxThresholdSlider.getValue(); };
-
-    addAndMakeVisible(maxThresholdLabel);
-    maxThresholdLabel.setText("Max Height", juce::dontSendNotification);
-
     addAndMakeVisible(connectionStatusLabel);
     connectionStatusLabel.setText("Checking Sensor...", juce::dontSendNotification);
     connectionStatusLabel.setJustificationType(juce::Justification::centredRight);
     connectionStatusLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
 
-    setSize(800, 600);
+    //Settings
+    addAndMakeVisible(settingsButton);
+    settingsButton.onClick = [this] {
+        settingsPage.setVisible(true); // Show the page
+        settingsButton.setVisible(false); // Hide the button (optional)
+        };
+
+    addChildComponent(settingsPage); // Use addChild, not addAndMakeVisible (starts hidden)
+    settingsPage.setVisible(false);  // Ensure it's hidden at start
+
+    // 3. Handle closing the settings
+    settingsPage.closeButton.onClick = [this] {
+        settingsPage.setVisible(false);
+        settingsButton.setVisible(true);
+        };
+
+    setResizable(true, true);
+    setResizeLimits(800, 600, 3000, 2000);
+
+    setSize(1400, 900);
 
     startTimerHz(60);
     }
@@ -131,23 +121,19 @@ void GestureInstrumentAudioProcessorEditor::drawGrid(juce::Graphics& g) {
 }
 
 void GestureInstrumentAudioProcessorEditor::resized() {
-    // Sliders 
     int margin = 10;
     int w = 200;
     int h = 20;
 
+    int buttonW = 120;
+    int buttonH = 30;
+    settingsButton.setBounds(getLocalBounds().getCentreX() - (buttonW / 2), margin, buttonW, buttonH);
+
+    settingsPage.setBounds(getLocalBounds());
+
     connectionStatusLabel.setBounds(getWidth() - 200 - margin, margin, 200, h);
-
-    sensitivityLabel.setBounds(margin, margin, w, h);
-    sensitivitySlider.setBounds(margin, margin + h, w, h);
-
-    minThresholdLabel.setBounds(margin, margin + h * 3, w, h);
-    minThresholdSlider.setBounds(margin, margin + h * 4, w, h);
-
-    maxThresholdLabel.setBounds(margin, margin + h * 6, w, h);
-    maxThresholdSlider.setBounds(margin, margin + h * 7, w, h);
-
     modeSelector.setBounds(getWidth() - 160 - margin, margin + 30, 150, 30);
+
 }
 
 
