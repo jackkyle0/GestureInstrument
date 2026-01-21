@@ -4,6 +4,22 @@
 GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor (GestureInstrumentAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
+    // Output Box MIDI/OSC
+    addAndMakeVisible(modeSelector);
+    modeSelector.addItem("OSC", 1);
+    modeSelector.addItem("MIDI", 2);
+
+    switch (audioProcessor.currentOutputMode) {
+        case OutputMode::OSC_Only:  modeSelector.setSelectedId(1); break;
+        case OutputMode::MIDI_Only: modeSelector.setSelectedId(2); break;
+    }
+
+    modeSelector.addListener(this);
+
+    addAndMakeVisible(modeLabel);
+    modeLabel.setText("Output Mode:", juce::dontSendNotification);
+    modeLabel.attachToComponent(&modeSelector, true);
+
 
     // Sensitivity
     addAndMakeVisible(sensitivitySlider);
@@ -40,7 +56,7 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor (Ge
 
     setSize(800, 600);
 
-    startTimerHz(30);
+    startTimerHz(60);
     }
 
 GestureInstrumentAudioProcessorEditor::~GestureInstrumentAudioProcessorEditor(){
@@ -130,7 +146,10 @@ void GestureInstrumentAudioProcessorEditor::resized() {
 
     maxThresholdLabel.setBounds(margin, margin + h * 6, w, h);
     maxThresholdSlider.setBounds(margin, margin + h * 7, w, h);
+
+    modeSelector.setBounds(getWidth() - 160 - margin, margin + 30, 150, 30);
 }
+
 
 void GestureInstrumentAudioProcessorEditor::timerCallback() {
     updateConnectionStatus();
@@ -139,7 +158,7 @@ void GestureInstrumentAudioProcessorEditor::timerCallback() {
 
 void GestureInstrumentAudioProcessorEditor::updateConnectionStatus() {
     bool connected = audioProcessor.isSensorConnected;
-    
+
     if (connected) {
         connectionStatusLabel.setText("Sensor Connected", juce::dontSendNotification);
         connectionStatusLabel.setColour(juce::Label::textColourId, juce::Colours::green);
@@ -148,4 +167,15 @@ void GestureInstrumentAudioProcessorEditor::updateConnectionStatus() {
         connectionStatusLabel.setText("Sensor Disconnected", juce::dontSendNotification);
         connectionStatusLabel.setColour(juce::Label::textColourId, juce::Colours::red);
     }
-} 
+}
+
+void GestureInstrumentAudioProcessorEditor::comboBoxChanged(juce::ComboBox * box)
+{
+    if (box == &modeSelector) {
+        int id = modeSelector.getSelectedId();
+
+        if (id == 1) audioProcessor.currentOutputMode = OutputMode::OSC_Only;
+        if (id == 2) audioProcessor.currentOutputMode = OutputMode::MIDI_Only;
+    }
+}
+

@@ -4,7 +4,7 @@
 #include "PluginProcessor.h"
 #include "HandData.h"
 
-class GestureInstrumentAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
+class GestureInstrumentAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer, public juce::ComboBox::Listener
 {
 public:
     GestureInstrumentAudioProcessorEditor (GestureInstrumentAudioProcessor&);
@@ -15,6 +15,8 @@ public:
     
     void timerCallback() override;
     void updateConnectionStatus();
+
+    void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
 
 private:
     GestureInstrumentAudioProcessor& audioProcessor;
@@ -31,6 +33,9 @@ private:
     juce::Label connectionStatusLabel;
     void drawHand(juce::Graphics& g, const HandData& hand, juce::Colour colour, juce::String label);
     void drawGrid(juce::Graphics& g);
+
+    juce::ComboBox modeSelector;
+    juce::Label modeLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GestureInstrumentAudioProcessorEditor)
 };

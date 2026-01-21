@@ -160,13 +160,13 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_plugin_client\juce_audio_plugin_client_Standalone.cpp">
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_plugin_client\juce_audio_plugin_client_Standalone.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_audio_plugin_client_Standalone.cpp"/>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_plugin_client\Standalone\juce_StandaloneFilterWindow.h"/>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_plugin_client\Standalone\juce_StandaloneFilterWindow.h"/>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include=".\resources.rc"/>

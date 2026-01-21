@@ -3,6 +3,14 @@
 #include <JuceHeader.h>
 #include "LeapService.h"
 #include "HandData.h"
+#include "OscManager.h"
+
+
+enum class OutputMode {
+
+    OSC_Only,
+    MIDI_Only
+};
 
 class GestureInstrumentAudioProcessor  : public juce::AudioProcessor 
 {
@@ -40,7 +48,7 @@ public:
 
     //==============================================================================
     
-    int currentNote = 1;
+    OutputMode currentOutputMode = OutputMode::OSC_Only;
     
     float sensitivityLevel = 1.0f;   
     float minHeightThreshold = 50.0f; 
@@ -49,19 +57,16 @@ public:
     int leftHandTargetCC = 1;   
     int rightHandTargetCC = 7;  
     
-    bool isSensorConnected = false;
-
     HandData leftHand;
     HandData rightHand;
+    bool isSensorConnected = false;
 
 private:
     LeapService leapService;
+    OscManager oscManager;
 
-    int lastVolume = -1;
-    int lastVibrato = -1;
-
-    int lastNoteTriggered = -1;
-    bool instrumentSetup = false;
+    int lastMidiNote = -1;
+    bool isNoteOn = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GestureInstrumentAudioProcessor)
 };

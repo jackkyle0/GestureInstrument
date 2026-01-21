@@ -13,6 +13,7 @@ GestureInstrumentAudioProcessor::GestureInstrumentAudioProcessor()
                        )
 #endif
 {
+    oscManager.connect("127.0.0.1", 9000);
 }
     
 GestureInstrumentAudioProcessor::~GestureInstrumentAudioProcessor()
@@ -87,69 +88,49 @@ bool GestureInstrumentAudioProcessor::isBusesLayoutSupported (const BusesLayout&
 #endif
 
 //==============================================================================
-void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
-{
-    juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear(i, 0, buffer.getNumSamples());
-
-
-    if (!instrumentSetup){
-        // PAD SOUND TEST
-        midiMessages.addEvent(juce::MidiMessage::programChange(1, 89), 0);
-        instrumentSetup = true;
-    }
+void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
+    buffer.clear();
+    midiMessages.clear();
 
     leapService.pollHandData(leftHand, rightHand, isSensorConnected);
 
-    int currentVelocity = 100;
+    // OSC
+    if (currentOutputMode == OutputMode::OSC_Only) {
 
-    // LEFT HAND
-    if (leftHand.isPresent) {
-        float yClamped = juce::jlimit((float)minHeightThreshold, (float)maxHeightThreshold, leftHand.currentHandPositionY);
-        int ccVolume = (int)juce::jmap(yClamped, (float)minHeightThreshold, (float)maxHeightThreshold, 0.0f, 127.0f);
-
-        if (ccVolume != lastVolume){
-            midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, 7, ccVolume), 0);
-            lastVolume = ccVolume; 
-        }
-        currentVelocity = ccVolume;
+        oscManager.processHandData(leftHand, rightHand, sensitivityLevel, minHeightThreshold, maxHeightThreshold);
     }
 
-    // RIGHT HAND
-    if (rightHand.isPresent) {
-        float activeRange = 200.0f / sensitivityLevel;
+    // MIDI
+    if (currentOutputMode == OutputMode::MIDI_Only) {
+        if (rightHand.isPresent) {
+            float activeRange = 200.0f / sensitivityLevel;
+            float xNorm = juce::jmap(rightHand.currentHandPositionX, -activeRange, activeRange, 0.0f, 1.0f);
+            xNorm = juce::jlimit(0.0f, 1.0f, xNorm);
 
-        float xNorm = juce::jmap(rightHand.currentHandPositionX, -activeRange, activeRange, 0.0f, 1.0f);
-        int noteToPlay = juce::jlimit(48, 72, (int)juce::jmap(xNorm, 0.0f, 1.0f, 48.0f, 84.0f));
+            // Pitch 
+            int midiNote = (int)juce::jmap(xNorm, 0.0f, 1.0f, 48.0f, 72.0f);
 
-        if (lastNoteTriggered == -1){
-            midiMessages.addEvent(juce::MidiMessage::noteOn(1, noteToPlay, (juce::uint8)currentVelocity), 0);
-            lastNoteTriggered = noteToPlay;
+            // Volume
+            float vol = 0.8f;
+            if (leftHand.isPresent) {
+                float yNorm = juce::jmap(leftHand.currentHandPositionY, minHeightThreshold, maxHeightThreshold, 0.0f, 1.0f);
+                vol = juce::jlimit(0.0f, 1.0f, yNorm);
+            }
+            int velocity = (int)(vol * 127.0f);
+
+            // Send Note On/Off
+            if (midiNote != lastMidiNote || !isNoteOn) {
+                if (isNoteOn) midiMessages.addEvent(juce::MidiMessage::noteOff(1, lastMidiNote), 0);
+                midiMessages.addEvent(juce::MidiMessage::noteOn(1, midiNote, (juce::uint8)velocity), 0);
+                lastMidiNote = midiNote;
+                isNoteOn = true;
+            }
         }
-        else if (lastNoteTriggered != noteToPlay){
-            midiMessages.addEvent(juce::MidiMessage::noteOff(1, lastNoteTriggered), 0);
-            midiMessages.addEvent(juce::MidiMessage::noteOn(1, noteToPlay, (juce::uint8)currentVelocity), 0);
-            lastNoteTriggered = noteToPlay;
-        }
-
-        // VIBRATO 
-        bool isIndexExtended = rightHand.fingers[1].isExtended;
-        int vibratoValue = isIndexExtended ? 127 : 0;
-
-        if (vibratoValue != lastVibrato) {
-            midiMessages.addEvent(juce::MidiMessage::controllerEvent(1, 1, vibratoValue), 0);
-            lastVibrato = vibratoValue;
-        }
-    }
-    else {
-        // OFF 
-        if (lastNoteTriggered != -1) {
-            midiMessages.addEvent(juce::MidiMessage::noteOff(1, lastNoteTriggered), 0);
-            lastNoteTriggered = -1;
+        else {
+            if (isNoteOn) {
+                midiMessages.addEvent(juce::MidiMessage::noteOff(1, lastMidiNote), 0);
+                isNoteOn = false;
+            }
         }
     }
 }

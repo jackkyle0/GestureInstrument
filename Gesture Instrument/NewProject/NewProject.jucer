@@ -5,6 +5,7 @@
               pluginCharacteristicsValue="pluginIsMidiEffectPlugin,pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn">
   <MAINGROUP id="JMLeXV" name="GestureInstrument">
     <GROUP id="{46B6B3BC-3658-09F8-7A13-6D04B3BB3411}" name="Source">
+      <FILE id="xxfgDs" name="OscManager.h" compile="0" resource="0" file="Source/OscManager.h"/>
       <FILE id="Rlzenp" name="HandData.h" compile="0" resource="0" file="Source/HandData.h"/>
       <FILE id="DlXLUZ" name="LeapService.cpp" compile="1" resource="0" file="Source/LeapService.cpp"/>
       <FILE id="wB4evg" name="LeapService.h" compile="0" resource="0" file="Source/LeapService.h"/>
