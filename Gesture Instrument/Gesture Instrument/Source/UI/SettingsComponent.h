@@ -1,7 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
-#include "PluginProcessor.h"
-#include "UI/GuiComponents.h" 
+#include "../PluginProcessor.h"
+#include "GuiComponents.h" 
 
 class SettingsComponent : public juce::Component {
 public:

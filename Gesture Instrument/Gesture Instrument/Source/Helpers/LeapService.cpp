@@ -1,4 +1,4 @@
-#include "Helpers/LeapService.h"
+#include "LeapService.h"
 
 LeapService::LeapService() {
     LeapCreateConnection(nullptr, &connectionHandle);
@@ -31,7 +31,7 @@ void LeapService::pollHandData(HandData& leftHand, HandData& rightHand, bool& is
         }
     }
 }
-
+// Test build
 void LeapService::convertLeapEventToHandData(const LEAP_TRACKING_EVENT* event, HandData& leftHand, HandData& rightHand) {
         leftHand.isPresent = false;
         rightHand.isPresent = false;

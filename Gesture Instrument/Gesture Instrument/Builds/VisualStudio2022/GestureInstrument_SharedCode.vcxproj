@@ -146,8 +146,8 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\SettingsComponent.cpp"/>
-    <ClCompile Include="..\..\Source\LeapService.cpp"/>
+    <ClCompile Include="..\..\Source\Helpers\LeapService.cpp"/>
+    <ClCompile Include="..\..\Source\UI\SettingsComponent.cpp"/>
     <ClCompile Include="..\..\Source\PluginProcessor.cpp"/>
     <ClCompile Include="..\..\Source\PluginEditor.cpp"/>
     <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.cpp">
@@ -2915,13 +2915,13 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_osc.cpp"/>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\OscManager.h"/>
-    <ClInclude Include="..\..\Source\MidiManager.h"/>
-    <ClInclude Include="..\..\Source\SettingsComponent.h"/>
-    <ClInclude Include="..\..\Source\GuiComponents.h"/>
-    <ClInclude Include="..\..\Source\HandData.h"/>
-    <ClInclude Include="..\..\Source\GestureTarget.h"/>
-    <ClInclude Include="..\..\Source\LeapService.h"/>
+    <ClInclude Include="..\..\Source\Helpers\HandData.h"/>
+    <ClInclude Include="..\..\Source\Helpers\LeapService.h"/>
+    <ClInclude Include="..\..\Source\UI\GuiComponents.h"/>
+    <ClInclude Include="..\..\Source\UI\SettingsComponent.h"/>
+    <ClInclude Include="..\..\Source\MIDI\GestureTarget.h"/>
+    <ClInclude Include="..\..\Source\MIDI\MidiManager.h"/>
+    <ClInclude Include="..\..\Source\OSC\OscManager.h"/>
     <ClInclude Include="..\..\Source\PluginProcessor.h"/>
     <ClInclude Include="..\..\Source\PluginEditor.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h"/>

@@ -1,11 +1,11 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "Helpers/HandData.h"
 #include "Helpers/LeapService.h"
-#include "HandData.h"
-#include "OscManager.h"
-#include "MidiManager.h"
-#include "GestureTarget.h"
+#include "OSC/OscManager.h"
+#include "MIDI/MidiManager.h"
+#include "MIDI/GestureTarget.h"
 
 
 enum class OutputMode {

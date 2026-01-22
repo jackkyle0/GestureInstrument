@@ -2,14 +2,17 @@
 
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="GestureInstrument\Source\MIDI/OSC">
-      <UniqueIdentifier>{87D3F9C9-7752-3ADF-1D93-39E6423118C5}</UniqueIdentifier>
+    <Filter Include="GestureInstrument\Source\Helpers">
+      <UniqueIdentifier>{2CD8051D-ED68-B846-C2E1-92A865E10B87}</UniqueIdentifier>
     </Filter>
     <Filter Include="GestureInstrument\Source\UI">
       <UniqueIdentifier>{EEEA6D4B-589A-9BA5-518D-0B9417ED857E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="GestureInstrument\Source\Helpers">
-      <UniqueIdentifier>{2CD8051D-ED68-B846-C2E1-92A865E10B87}</UniqueIdentifier>
+    <Filter Include="GestureInstrument\Source\MIDI">
+      <UniqueIdentifier>{48F8B243-B398-35DB-009A-02E9E41AD016}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GestureInstrument\Source\OSC">
+      <UniqueIdentifier>{B05D1344-C853-5F63-A588-E36428A0C3F7}</UniqueIdentifier>
     </Filter>
     <Filter Include="GestureInstrument\Source">
       <UniqueIdentifier>{21003203-449F-E7BC-A3DC-881B56AF955D}</UniqueIdentifier>
@@ -682,11 +685,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\SettingsComponent.cpp">
-      <Filter>GestureInstrument\Source\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\LeapService.cpp">
+    <ClCompile Include="..\..\Source\Helpers\LeapService.cpp">
       <Filter>GestureInstrument\Source\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\UI\SettingsComponent.cpp">
+      <Filter>GestureInstrument\Source\UI</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\PluginProcessor.cpp">
       <Filter>GestureInstrument\Source</Filter>
@@ -3633,26 +3636,26 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\OscManager.h">
-      <Filter>GestureInstrument\Source\MIDI/OSC</Filter>
+    <ClInclude Include="..\..\Source\Helpers\HandData.h">
+      <Filter>GestureInstrument\Source\Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\MidiManager.h">
-      <Filter>GestureInstrument\Source\MIDI/OSC</Filter>
+    <ClInclude Include="..\..\Source\Helpers\LeapService.h">
+      <Filter>GestureInstrument\Source\Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\SettingsComponent.h">
+    <ClInclude Include="..\..\Source\UI\GuiComponents.h">
       <Filter>GestureInstrument\Source\UI</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\GuiComponents.h">
+    <ClInclude Include="..\..\Source\UI\SettingsComponent.h">
       <Filter>GestureInstrument\Source\UI</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\HandData.h">
-      <Filter>GestureInstrument\Source\Helpers</Filter>
+    <ClInclude Include="..\..\Source\MIDI\GestureTarget.h">
+      <Filter>GestureInstrument\Source\MIDI</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\GestureTarget.h">
-      <Filter>GestureInstrument\Source\Helpers</Filter>
+    <ClInclude Include="..\..\Source\MIDI\MidiManager.h">
+      <Filter>GestureInstrument\Source\MIDI</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\LeapService.h">
-      <Filter>GestureInstrument\Source\Helpers</Filter>
+    <ClInclude Include="..\..\Source\OSC\OscManager.h">
+      <Filter>GestureInstrument\Source\OSC</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\PluginProcessor.h">
       <Filter>GestureInstrument\Source</Filter>

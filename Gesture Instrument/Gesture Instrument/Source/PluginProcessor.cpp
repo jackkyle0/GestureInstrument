@@ -94,10 +94,16 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
 
     leapService.pollHandData(leftHand, rightHand, isSensorConnected);
 
+   
     // OSC
     if (currentOutputMode == OutputMode::OSC_Only) {
-
-        oscManager.processHandData(leftHand, rightHand, sensitivityLevel, minHeightThreshold, maxHeightThreshold);
+        oscManager.processHandData(
+            leftHand, rightHand,
+            sensitivityLevel, minHeightThreshold, maxHeightThreshold,
+            // Pass the targets manually:
+            leftXTarget, leftYTarget, leftZTarget, leftRollTarget,
+            rightXTarget, rightYTarget, rightZTarget, rightRollTarget
+        );
     }
 
     // MIDI

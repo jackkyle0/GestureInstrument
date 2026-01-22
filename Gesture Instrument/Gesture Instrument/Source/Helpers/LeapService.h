@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "LeapC.h"
-#include "Helpers/HandData.h"
+#include "HandData.h"
 
 class LeapService 
 {

@@ -5,22 +5,24 @@
               pluginCharacteristicsValue="pluginIsMidiEffectPlugin,pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn">
   <MAINGROUP id="JMLeXV" name="GestureInstrument">
     <GROUP id="{46B6B3BC-3658-09F8-7A13-6D04B3BB3411}" name="Source">
-      <GROUP id="{280C6ADE-E940-A9AA-C486-40B827E09A28}" name="MIDI/OSC">
-        <FILE id="xxfgDs" name="OscManager.h" compile="0" resource="0" file="Source/OscManager.h"/>
-        <FILE id="np5lHh" name="MidiManager.h" compile="0" resource="0" file="Source/MidiManager.h"/>
+      <GROUP id="{037BE40F-DD92-1E8A-38E0-8E6D175F53FF}" name="Helpers">
+        <FILE id="SiC2iO" name="HandData.h" compile="0" resource="0" file="Source/Helpers/HandData.h"/>
+        <FILE id="ioJAFr" name="LeapService.cpp" compile="1" resource="0" file="Source/Helpers/LeapService.cpp"/>
+        <FILE id="jzuoYN" name="LeapService.h" compile="0" resource="0" file="Source/Helpers/LeapService.h"/>
       </GROUP>
-      <GROUP id="{DD6BC035-2347-BA05-6E34-FD9FB7E61FFA}" name="UI">
-        <FILE id="IJ0zhR" name="SettingsComponent.cpp" compile="1" resource="0"
-              file="Source/SettingsComponent.cpp"/>
-        <FILE id="cpVMgp" name="SettingsComponent.h" compile="0" resource="0"
-              file="Source/SettingsComponent.h"/>
-        <FILE id="wWqvIN" name="GuiComponents.h" compile="0" resource="0" file="Source/GuiComponents.h"/>
+      <GROUP id="{3C4CCF07-A996-D733-F72A-AA0DE7042D0F}" name="UI">
+        <FILE id="K8mZiB" name="GuiComponents.h" compile="0" resource="0" file="Source/UI/GuiComponents.h"/>
+        <FILE id="HCBU0n" name="SettingsComponent.cpp" compile="1" resource="0"
+              file="Source/UI/SettingsComponent.cpp"/>
+        <FILE id="YSgKRx" name="SettingsComponent.h" compile="0" resource="0"
+              file="Source/UI/SettingsComponent.h"/>
       </GROUP>
-      <GROUP id="{2BEE99C6-F959-953F-1329-944A82CEBB1F}" name="Helpers">
-        <FILE id="Rlzenp" name="HandData.h" compile="0" resource="0" file="Source/HandData.h"/>
-        <FILE id="Jgr668" name="GestureTarget.h" compile="0" resource="0" file="Source/GestureTarget.h"/>
-        <FILE id="wB4evg" name="LeapService.h" compile="0" resource="0" file="Source/LeapService.h"/>
-        <FILE id="DlXLUZ" name="LeapService.cpp" compile="1" resource="0" file="Source/LeapService.cpp"/>
+      <GROUP id="{EB3D25A5-867C-B580-F4A2-9D414F4BB221}" name="MIDI">
+        <FILE id="wa9w9S" name="GestureTarget.h" compile="0" resource="0" file="Source/MIDI/GestureTarget.h"/>
+        <FILE id="iH3sDU" name="MidiManager.h" compile="0" resource="0" file="Source/MIDI/MidiManager.h"/>
+      </GROUP>
+      <GROUP id="{5F7F0D8D-7AE0-2631-00F1-958ED0BD3A5F}" name="OSC">
+        <FILE id="IDb67e" name="OscManager.h" compile="0" resource="0" file="Source/OSC/OscManager.h"/>
       </GROUP>
       <FILE id="Tc3miR" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

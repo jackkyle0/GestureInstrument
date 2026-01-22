@@ -1,4 +1,4 @@
-#include "UI/SettingsComponent.h"
+#include "SettingsComponent.h"
 
 SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
     : audioProcessor(p),
