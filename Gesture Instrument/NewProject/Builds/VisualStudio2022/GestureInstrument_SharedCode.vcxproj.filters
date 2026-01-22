@@ -3624,6 +3624,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\GuiComponents.h">
+      <Filter>GestureInstrument\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\SettingsComponent.h">
       <Filter>GestureInstrument\Source</Filter>
     </ClInclude>

@@ -5,6 +5,7 @@
               pluginCharacteristicsValue="pluginIsMidiEffectPlugin,pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn">
   <MAINGROUP id="JMLeXV" name="GestureInstrument">
     <GROUP id="{46B6B3BC-3658-09F8-7A13-6D04B3BB3411}" name="Source">
+      <FILE id="wWqvIN" name="GuiComponents.h" compile="0" resource="0" file="Source/GuiComponents.h"/>
       <FILE id="cpVMgp" name="SettingsComponent.h" compile="0" resource="0"
             file="Source/SettingsComponent.h"/>
       <FILE id="IJ0zhR" name="SettingsComponent.cpp" compile="1" resource="0"

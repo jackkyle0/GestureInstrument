@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "GuiComponents.h" 
 
 class SettingsComponent : public juce::Component {
 public:
@@ -15,34 +16,25 @@ public:
 private:
     GestureInstrumentAudioProcessor& audioProcessor;
 
-    // Parameter Mapping
     juce::Label titleLabel{ {}, "Parameter Selection" };
-    juce::Label handAxisTitle{ {}, "Hand / Axis" };
-    juce::Label mappedParamTitle{ {}, "Mapped Parameter" };
 
-    // Row Labels
-    juce::Label leftXLabel{ {}, "Left Hand X (Side)" };
-    juce::Label leftYLabel{ {}, "Left Hand Y (Height)" };
-    juce::Label rightXLabel{ {}, "Right Hand X (Side)" };
-    juce::Label rightYLabel{ {}, "Right Hand Y (Height)" };
 
-    // Dropdowns
-    juce::ComboBox leftXBox;
-    juce::ComboBox leftYBox;
-    juce::ComboBox rightXBox;
-    juce::ComboBox rightYBox;
+    // Left Hand Controls
+    MappingRow leftXRow{ "Left Hand X (Side)", 3 };     
+    MappingRow leftYRow{ "Left Hand Y (Height)", 1 };     // Default Volume
+    MappingRow leftZRow{ "Left Hand Z (Depth)", 3 };
+    MappingRow leftWristRow{ "Left Hand Rotation", 3 };
 
-   // Sensivity and sliders
-    juce::Slider sensitivitySlider;
-    juce::Label  sensitivityLabel{ {}, "Sensitivity" };
+    // Right Hand Controls
+    MappingRow rightXRow{ "Right Hand X (Side)", 2 };      // Default Pitch
+    MappingRow rightYRow{ "Right Hand Y (Height)", 3 };
+    MappingRow rightZRow{ "Right Hand Z (Depth)", 3 };
+    MappingRow rightWristRow{ "Right Hand Rotation", 3 };
 
-    juce::Slider minHeightSlider;
-    juce::Label  minHeightLabel{ {}, "Min Height Threshold" };
-
-    juce::Slider maxHeightSlider;
-    juce::Label  maxHeightLabel{ {}, "Max Height Threshold" };
-
-    void setupComboBox(juce::ComboBox& box, int defaultID);
+    // Sliders
+    LabeledSlider sensitivityControl;
+    LabeledSlider minHeightControl;
+    LabeledSlider maxHeightControl;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsComponent)
 };

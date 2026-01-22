@@ -28,12 +28,12 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor (Ge
     //Settings
     addAndMakeVisible(settingsButton);
     settingsButton.onClick = [this] {
-        settingsPage.setVisible(true); // Show the page
-        settingsButton.setVisible(false); // Hide the button (optional)
+        settingsPage.setVisible(true); 
+        settingsButton.setVisible(false); 
         };
 
-    addChildComponent(settingsPage); // Use addChild, not addAndMakeVisible (starts hidden)
-    settingsPage.setVisible(false);  // Ensure it's hidden at start
+    addChildComponent(settingsPage);
+    settingsPage.setVisible(false); 
 
     // 3. Handle closing the settings
     settingsPage.closeButton.onClick = [this] {
@@ -44,7 +44,7 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor (Ge
     setResizable(true, true);
     setResizeLimits(800, 600, 3000, 2000);
 
-    setSize(1400, 900);
+    setSize(1200, 800);
 
     startTimerHz(60);
     }

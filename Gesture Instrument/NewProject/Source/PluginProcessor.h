@@ -18,7 +18,7 @@ public:
     GestureInstrumentAudioProcessor();
     ~GestureInstrumentAudioProcessor() override;
 
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
    #ifndef JucePlugin_PreferredChannelConfigurations
