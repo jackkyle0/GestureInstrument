@@ -35,7 +35,7 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor (Ge
     addChildComponent(settingsPage);
     settingsPage.setVisible(false); 
 
-    // 3. Handle closing the settings
+    //  closing the settings
     settingsPage.closeButton.onClick = [this] {
         settingsPage.setVisible(false);
         settingsButton.setVisible(true);
