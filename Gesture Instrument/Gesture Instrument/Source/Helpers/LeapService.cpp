@@ -16,9 +16,8 @@ LeapService::~LeapService() {
 
 void LeapService::pollHandData(HandData& leftHand, HandData& rightHand, bool& isConnected) {
     LEAP_CONNECTION_MESSAGE message;
-    eLeapRS result = LeapPollConnection(connectionHandle, 0, &message);
 
-    if (result == eLeapRS_Success)
+    while (LeapPollConnection(connectionHandle, 0, &message) == eLeapRS_Success)
     {
         if (message.type == eLeapEventType_Tracking) {
             convertLeapEventToHandData(message.tracking_event, leftHand, rightHand);
@@ -31,7 +30,6 @@ void LeapService::pollHandData(HandData& leftHand, HandData& rightHand, bool& is
         }
     }
 }
-// Test build
 void LeapService::convertLeapEventToHandData(const LEAP_TRACKING_EVENT* event, HandData& leftHand, HandData& rightHand) {
         leftHand.isPresent = false;
         rightHand.isPresent = false;

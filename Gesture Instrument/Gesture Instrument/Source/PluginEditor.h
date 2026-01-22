@@ -24,7 +24,7 @@ private:
     GestureInstrumentAudioProcessor& audioProcessor;
     
     juce::Label connectionStatusLabel;
-    void drawHand(juce::Graphics& g, const HandData& hand, juce::Colour colour, juce::String label);
+    void drawHand(juce::Graphics& g, const HandData& hand, juce::Colour colour, const juce::String& label);
     void drawGrid(juce::Graphics& g);
 
     juce::ComboBox modeSelector;
@@ -32,6 +32,8 @@ private:
 
     juce::TextButton settingsButton{ "Settings" };
     SettingsComponent settingsPage;
+
+    juce::OpenGLContext openGLContext;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GestureInstrumentAudioProcessorEditor)
 };

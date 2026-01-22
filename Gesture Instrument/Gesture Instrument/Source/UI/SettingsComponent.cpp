@@ -7,18 +7,17 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
     maxHeightControl("Max Height", 200.0f, 600.0f, p.maxHeightThreshold)
 {
 
-    // ... inside SettingsComponent::SettingsComponent ...
+    setOpaque(true); 
 
-    // 1. Helper Lambda to convert Dropdown ID -> Enum
+
     auto getTargetFromId = [](int id) -> GestureTarget {
-        // IDs: 1=Volume, 2=Pitch, 3=None (Based on how we set up MappingRow)
         if (id == 1) return GestureTarget::Volume;
         if (id == 2) return GestureTarget::Pitch;
         if (id == 3) return GestureTarget::None;
         return GestureTarget::None;
         };
 
-    // 2. Assign Callbacks for LEFT HAND
+    // Assign Callbacks for LEFT HAND
     leftXRow.comboBox.onChange = [this, getTargetFromId] {
         audioProcessor.leftXTarget = getTargetFromId(leftXRow.comboBox.getSelectedId());
         };
@@ -32,7 +31,7 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
         audioProcessor.leftRollTarget = getTargetFromId(leftWristRow.comboBox.getSelectedId());
         };
 
-    // 3. Assign Callbacks for RIGHT HAND
+    // Assign Callbacks for RIGHT HAND
     rightXRow.comboBox.onChange = [this, getTargetFromId] {
         audioProcessor.rightXTarget = getTargetFromId(rightXRow.comboBox.getSelectedId());
         };
@@ -78,7 +77,7 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
 SettingsComponent::~SettingsComponent() {}
 
 void SettingsComponent::paint(juce::Graphics& g) {
-    g.fillAll(juce::Colours::black.withAlpha(0.95f));
+    g.fillAll(juce::Colours::black);
 }
 
 void SettingsComponent::resized() {

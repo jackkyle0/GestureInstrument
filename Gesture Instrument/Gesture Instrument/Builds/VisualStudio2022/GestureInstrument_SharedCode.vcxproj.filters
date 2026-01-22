@@ -671,6 +671,21 @@
     <Filter Include="JUCE Modules\juce_midi_ci">
       <UniqueIdentifier>{F64F0BED-92DA-A4AE-0A76-9AC4FC01C199}</UniqueIdentifier>
     </Filter>
+    <Filter Include="JUCE Modules\juce_opengl\geometry">
+      <UniqueIdentifier>{1A9221A3-E993-70B2-6EA2-8E1DB5FF646A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="JUCE Modules\juce_opengl\native">
+      <UniqueIdentifier>{CC2DAD7A-5B45-62AB-4C54-6FE6B1AE86C3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="JUCE Modules\juce_opengl\opengl">
+      <UniqueIdentifier>{599138A9-EA63-53DD-941F-ABE3412D2949}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="JUCE Modules\juce_opengl\utils">
+      <UniqueIdentifier>{422A4014-8587-1AE6-584F-32A62613A37B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="JUCE Modules\juce_opengl">
+      <UniqueIdentifier>{9FBFF5E5-56F1-34A1-2C85-F760DA2B1EB7}</UniqueIdentifier>
+    </Filter>
     <Filter Include="JUCE Modules\juce_osc\osc">
       <UniqueIdentifier>{EEE9B92C-AD26-4BEA-4D95-3F859090EA9F}</UniqueIdentifier>
     </Filter>
@@ -3550,6 +3565,45 @@
     <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_midi_ci\juce_midi_ci.cpp">
       <Filter>JUCE Modules\juce_midi_ci</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_gl.cpp">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_gles2.cpp">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLContext.cpp">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLFrameBuffer.cpp">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLGraphicsContext.cpp">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLHelpers.cpp">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLImage.cpp">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLPixelFormat.cpp">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLShaderProgram.cpp">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLTexture.cpp">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\utils\juce_OpenGLAppComponent.cpp">
+      <Filter>JUCE Modules\juce_opengl\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\juce_opengl.cpp">
+      <Filter>JUCE Modules\juce_opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\juce_opengl.mm">
+      <Filter>JUCE Modules\juce_opengl</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_osc\osc\juce_OSCAddress.cpp">
       <Filter>JUCE Modules\juce_osc\osc</Filter>
     </ClCompile>
@@ -3629,6 +3683,9 @@
       <Filter>JUCE Library Code</Filter>
     </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_midi_ci.cpp">
+      <Filter>JUCE Library Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\include_juce_opengl.cpp">
       <Filter>JUCE Library Code</Filter>
     </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_osc.cpp">
@@ -7670,6 +7727,81 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_midi_ci\juce_midi_ci.h">
       <Filter>JUCE Modules\juce_midi_ci</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\geometry\juce_Draggable3DOrientation.h">
+      <Filter>JUCE Modules\juce_opengl\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\geometry\juce_Matrix3D.h">
+      <Filter>JUCE Modules\juce_opengl\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\geometry\juce_Quaternion.h">
+      <Filter>JUCE Modules\juce_opengl\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\geometry\juce_Vector3D.h">
+      <Filter>JUCE Modules\juce_opengl\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\native\juce_OpenGL_android.h">
+      <Filter>JUCE Modules\juce_opengl\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\native\juce_OpenGL_ios.h">
+      <Filter>JUCE Modules\juce_opengl\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\native\juce_OpenGL_linux.h">
+      <Filter>JUCE Modules\juce_opengl\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\native\juce_OpenGL_mac.h">
+      <Filter>JUCE Modules\juce_opengl\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\native\juce_OpenGL_windows.h">
+      <Filter>JUCE Modules\juce_opengl\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\native\juce_OpenGLExtensions.h">
+      <Filter>JUCE Modules\juce_opengl\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_gl.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_gles2.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_khrplatform.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLContext.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLFrameBuffer.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLGraphicsContext.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLHelpers.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLImage.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLPixelFormat.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLRenderer.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLShaderProgram.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_OpenGLTexture.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\opengl\juce_wgl.h">
+      <Filter>JUCE Modules\juce_opengl\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\utils\juce_OpenGLAppComponent.h">
+      <Filter>JUCE Modules\juce_opengl\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_opengl\juce_opengl.h">
+      <Filter>JUCE Modules\juce_opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_osc\osc\juce_OSCAddress.h">
       <Filter>JUCE Modules\juce_osc\osc</Filter>
