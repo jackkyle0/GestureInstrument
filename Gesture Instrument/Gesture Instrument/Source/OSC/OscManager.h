@@ -1,7 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
-#include "HandData.h" 
-#include "GestureTarget.h"
+#include "Helpers/HandData.h" 
+#include "MIDI/GestureTarget.h"
 
 
 class OscManager

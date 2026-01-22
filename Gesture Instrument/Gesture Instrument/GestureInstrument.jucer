@@ -57,7 +57,7 @@
                        extraLinkerFlags="LeapC.lib&#10;"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="GestureInstrument" extraLinkerFlags="LeapC.lib&#10;"
                        libraryPath="&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;"
-                       headerPath="&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/include&quot;&#10;&#10;&quot;Source/Helpers&quot;"/>
+                       headerPath="&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/include&quot;&#10;&quot;C:\Users\Student\Desktop\Jacks Desktop\GestureInstrument\Gesture Instrument\Gesture Instrument\Source\UI&quot;&#10;&quot;C:\Users\Student\Desktop\Jacks Desktop\GestureInstrument\Gesture Instrument\Gesture Instrument\Source\MIDI&quot;&#10;&quot;C:\Users\Student\Desktop\Jacks Desktop\GestureInstrument\Gesture Instrument\Gesture Instrument\Source\OSC&quot;&#10;&quot;C:\Users\Student\Desktop\Jacks Desktop\GestureInstrument\Gesture Instrument\Gesture Instrument\Source\Helpers&quot;&#10;"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../Jacks Downloads/juce-8.0.10-windows/JUCE/modules"/>

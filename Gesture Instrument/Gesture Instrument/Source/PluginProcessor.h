@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "LeapService.h"
+#include "Helpers/LeapService.h"
 #include "HandData.h"
 #include "OscManager.h"
 #include "MidiManager.h"

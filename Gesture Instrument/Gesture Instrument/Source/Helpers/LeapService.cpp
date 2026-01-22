@@ -1,4 +1,4 @@
-#include "LeapService.h"
+#include "Helpers/LeapService.h"
 
 LeapService::LeapService() {
     LeapCreateConnection(nullptr, &connectionHandle);
