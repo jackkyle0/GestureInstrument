@@ -5,15 +5,23 @@
               pluginCharacteristicsValue="pluginIsMidiEffectPlugin,pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn">
   <MAINGROUP id="JMLeXV" name="GestureInstrument">
     <GROUP id="{46B6B3BC-3658-09F8-7A13-6D04B3BB3411}" name="Source">
-      <FILE id="wWqvIN" name="GuiComponents.h" compile="0" resource="0" file="Source/GuiComponents.h"/>
-      <FILE id="cpVMgp" name="SettingsComponent.h" compile="0" resource="0"
-            file="Source/SettingsComponent.h"/>
-      <FILE id="IJ0zhR" name="SettingsComponent.cpp" compile="1" resource="0"
-            file="Source/SettingsComponent.cpp"/>
-      <FILE id="xxfgDs" name="OscManager.h" compile="0" resource="0" file="Source/OscManager.h"/>
-      <FILE id="Rlzenp" name="HandData.h" compile="0" resource="0" file="Source/HandData.h"/>
-      <FILE id="DlXLUZ" name="LeapService.cpp" compile="1" resource="0" file="Source/LeapService.cpp"/>
-      <FILE id="wB4evg" name="LeapService.h" compile="0" resource="0" file="Source/LeapService.h"/>
+      <GROUP id="{280C6ADE-E940-A9AA-C486-40B827E09A28}" name="MIDI/OSC">
+        <FILE id="xxfgDs" name="OscManager.h" compile="0" resource="0" file="Source/OscManager.h"/>
+        <FILE id="np5lHh" name="MidiManager.h" compile="0" resource="0" file="Source/MidiManager.h"/>
+      </GROUP>
+      <GROUP id="{DD6BC035-2347-BA05-6E34-FD9FB7E61FFA}" name="UI">
+        <FILE id="IJ0zhR" name="SettingsComponent.cpp" compile="1" resource="0"
+              file="Source/SettingsComponent.cpp"/>
+        <FILE id="cpVMgp" name="SettingsComponent.h" compile="0" resource="0"
+              file="Source/SettingsComponent.h"/>
+        <FILE id="wWqvIN" name="GuiComponents.h" compile="0" resource="0" file="Source/GuiComponents.h"/>
+      </GROUP>
+      <GROUP id="{2BEE99C6-F959-953F-1329-944A82CEBB1F}" name="Helpers">
+        <FILE id="Rlzenp" name="HandData.h" compile="0" resource="0" file="Source/HandData.h"/>
+        <FILE id="Jgr668" name="GestureTarget.h" compile="0" resource="0" file="Source/GestureTarget.h"/>
+        <FILE id="wB4evg" name="LeapService.h" compile="0" resource="0" file="Source/LeapService.h"/>
+        <FILE id="DlXLUZ" name="LeapService.cpp" compile="1" resource="0" file="Source/LeapService.cpp"/>
+      </GROUP>
       <FILE id="Tc3miR" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="nfdHgs" name="PluginProcessor.h" compile="0" resource="0"

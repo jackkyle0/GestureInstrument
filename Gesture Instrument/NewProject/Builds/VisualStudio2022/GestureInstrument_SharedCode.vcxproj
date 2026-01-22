@@ -2915,10 +2915,12 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_osc.cpp"/>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\GuiComponents.h"/>
-    <ClInclude Include="..\..\Source\SettingsComponent.h"/>
     <ClInclude Include="..\..\Source\OscManager.h"/>
+    <ClInclude Include="..\..\Source\MidiManager.h"/>
+    <ClInclude Include="..\..\Source\SettingsComponent.h"/>
+    <ClInclude Include="..\..\Source\GuiComponents.h"/>
     <ClInclude Include="..\..\Source\HandData.h"/>
+    <ClInclude Include="..\..\Source\GestureTarget.h"/>
     <ClInclude Include="..\..\Source\LeapService.h"/>
     <ClInclude Include="..\..\Source\PluginProcessor.h"/>
     <ClInclude Include="..\..\Source\PluginEditor.h"/>

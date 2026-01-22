@@ -39,6 +39,7 @@ public:
         comboBox.addItem("Volume", 1);
         comboBox.addItem("Pitch", 2);
         comboBox.addItem("None", 3);
+
         comboBox.setSelectedId(defaultID);
     }
 

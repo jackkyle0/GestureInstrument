@@ -4,6 +4,7 @@
 #include "PluginProcessor.h"
 #include "HandData.h"
 #include "SettingsComponent.h"
+#include "GestureTarget.h"
 
 class GestureInstrumentAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer, public juce::ComboBox::Listener
 {

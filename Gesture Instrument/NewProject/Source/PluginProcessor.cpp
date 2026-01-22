@@ -102,36 +102,8 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
 
     // MIDI
     if (currentOutputMode == OutputMode::MIDI_Only) {
-        if (rightHand.isPresent) {
-            float activeRange = 200.0f / sensitivityLevel;
-            float xNorm = juce::jmap(rightHand.currentHandPositionX, -activeRange, activeRange, 0.0f, 1.0f);
-            xNorm = juce::jlimit(0.0f, 1.0f, xNorm);
-
-            // Pitch 
-            int midiNote = (int)juce::jmap(xNorm, 0.0f, 1.0f, 48.0f, 72.0f);
-
-            // Volume
-            float vol = 0.8f;
-            if (leftHand.isPresent) {
-                float yNorm = juce::jmap(leftHand.currentHandPositionY, minHeightThreshold, maxHeightThreshold, 0.0f, 1.0f);
-                vol = juce::jlimit(0.0f, 1.0f, yNorm);
-            }
-            int velocity = (int)(vol * 127.0f);
-
-            // Send Note On/Off
-            if (midiNote != lastMidiNote || !isNoteOn) {
-                if (isNoteOn) midiMessages.addEvent(juce::MidiMessage::noteOff(1, lastMidiNote), 0);
-                midiMessages.addEvent(juce::MidiMessage::noteOn(1, midiNote, (juce::uint8)velocity), 0);
-                lastMidiNote = midiNote;
-                isNoteOn = true;
-            }
-        }
-        else {
-            if (isNoteOn) {
-                midiMessages.addEvent(juce::MidiMessage::noteOff(1, lastMidiNote), 0);
-                isNoteOn = false;
-            }
-        }
+        midiManager.processHandData(midiMessages, leftHand, rightHand, sensitivityLevel, minHeightThreshold, maxHeightThreshold, leftXTarget, leftYTarget,
+            rightXTarget, rightYTarget);
     }
 }
 

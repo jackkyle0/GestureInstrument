@@ -4,6 +4,8 @@
 #include "LeapService.h"
 #include "HandData.h"
 #include "OscManager.h"
+#include "MidiManager.h"
+#include "GestureTarget.h"
 
 
 enum class OutputMode {
@@ -61,6 +63,16 @@ public:
     int leftHandTargetCC = 1;   
     int rightHandTargetCC = 7;  
     
+    GestureTarget leftXTarget = GestureTarget::None;
+    GestureTarget leftYTarget = GestureTarget::Volume; // Default
+    GestureTarget leftZTarget = GestureTarget::None;
+    GestureTarget leftRollTarget = GestureTarget::None;
+
+    GestureTarget rightXTarget = GestureTarget::Pitch; // Default
+    GestureTarget rightYTarget = GestureTarget::None;
+    GestureTarget rightZTarget = GestureTarget::None;
+    GestureTarget rightRollTarget = GestureTarget::None;
+
     HandData leftHand;
     HandData rightHand;
     bool isSensorConnected = false;
@@ -68,9 +80,7 @@ public:
 private:
     LeapService leapService;
     OscManager oscManager;
-
-    int lastMidiNote = -1;
-    bool isNoteOn = false;
+    MidiManager midiManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GestureInstrumentAudioProcessor)
 };

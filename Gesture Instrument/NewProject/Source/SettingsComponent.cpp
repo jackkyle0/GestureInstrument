@@ -6,6 +6,45 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
     minHeightControl("Min Height", 0.0f, 200.0f, p.minHeightThreshold),
     maxHeightControl("Max Height", 200.0f, 600.0f, p.maxHeightThreshold)
 {
+
+    // ... inside SettingsComponent::SettingsComponent ...
+
+    // 1. Helper Lambda to convert Dropdown ID -> Enum
+    auto getTargetFromId = [](int id) -> GestureTarget {
+        // IDs: 1=Volume, 2=Pitch, 3=None (Based on how we set up MappingRow)
+        if (id == 1) return GestureTarget::Volume;
+        if (id == 2) return GestureTarget::Pitch;
+        if (id == 3) return GestureTarget::None;
+        return GestureTarget::None;
+        };
+
+    // 2. Assign Callbacks for LEFT HAND
+    leftXRow.comboBox.onChange = [this, getTargetFromId] {
+        audioProcessor.leftXTarget = getTargetFromId(leftXRow.comboBox.getSelectedId());
+        };
+    leftYRow.comboBox.onChange = [this, getTargetFromId] {
+        audioProcessor.leftYTarget = getTargetFromId(leftYRow.comboBox.getSelectedId());
+        };
+    leftZRow.comboBox.onChange = [this, getTargetFromId] {
+        audioProcessor.leftZTarget = getTargetFromId(leftZRow.comboBox.getSelectedId());
+        };
+    leftWristRow.comboBox.onChange = [this, getTargetFromId] {
+        audioProcessor.leftRollTarget = getTargetFromId(leftWristRow.comboBox.getSelectedId());
+        };
+
+    // 3. Assign Callbacks for RIGHT HAND
+    rightXRow.comboBox.onChange = [this, getTargetFromId] {
+        audioProcessor.rightXTarget = getTargetFromId(rightXRow.comboBox.getSelectedId());
+        };
+    rightYRow.comboBox.onChange = [this, getTargetFromId] {
+        audioProcessor.rightYTarget = getTargetFromId(rightYRow.comboBox.getSelectedId());
+        };
+    rightZRow.comboBox.onChange = [this, getTargetFromId] {
+        audioProcessor.rightZTarget = getTargetFromId(rightZRow.comboBox.getSelectedId());
+        };
+    rightWristRow.comboBox.onChange = [this, getTargetFromId] {
+        audioProcessor.rightRollTarget = getTargetFromId(rightWristRow.comboBox.getSelectedId());
+        };
     addAndMakeVisible(titleLabel);
     titleLabel.setFont(juce::Font(24.0f, juce::Font::bold));
     titleLabel.setJustificationType(juce::Justification::centred);
