@@ -47,12 +47,12 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor (Ge
     setOpaque(true);
 
     openGLContext.attachTo(*this);
-    openGLContext.setContinuousRepainting(true); // control the paint timing
+    openGLContext.setContinuousRepainting(false); // control the paint timing
 
 
     setSize(1200, 800);
 
-    startTimerHz(500);
+    startTimerHz(60);
     }
 
 GestureInstrumentAudioProcessorEditor::~GestureInstrumentAudioProcessorEditor(){
@@ -154,7 +154,7 @@ void GestureInstrumentAudioProcessorEditor::resized() {
 void GestureInstrumentAudioProcessorEditor::timerCallback() {
 
     updateConnectionStatus();
-    // repaint();
+    repaint();
 }
 
 void GestureInstrumentAudioProcessorEditor::updateConnectionStatus() {
