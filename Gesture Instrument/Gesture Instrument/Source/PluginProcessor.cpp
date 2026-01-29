@@ -100,7 +100,6 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
         oscManager.processHandData(
             leftHand, rightHand,
             sensitivityLevel, minHeightThreshold, maxHeightThreshold,
-            // Pass the targets manually:
             leftXTarget, leftYTarget, leftZTarget, leftRollTarget,
             rightXTarget, rightYTarget, rightZTarget, rightRollTarget
         );
@@ -108,8 +107,12 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
 
     // MIDI
     if (currentOutputMode == OutputMode::MIDI_Only) {
-        midiManager.processHandData(midiMessages, leftHand, rightHand, sensitivityLevel, minHeightThreshold, maxHeightThreshold, leftXTarget, leftYTarget,
-            rightXTarget, rightYTarget);
+        midiManager.processHandData(
+            midiMessages, leftHand, rightHand,
+            sensitivityLevel, minHeightThreshold, maxHeightThreshold,
+            leftXTarget, leftYTarget, rightXTarget, rightYTarget,
+            rootNote, scaleType
+        );
     }
 }
 

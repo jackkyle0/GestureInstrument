@@ -59,6 +59,10 @@ public:
     float sensitivityLevel = 1.0f;   
     float minHeightThreshold = 50.0f; 
     float maxHeightThreshold = 300.0f;
+
+    int rootNote = 0; 
+    int scaleType = 0;  
+
     
     int leftHandTargetCC = 1;   
     int rightHandTargetCC = 7;  

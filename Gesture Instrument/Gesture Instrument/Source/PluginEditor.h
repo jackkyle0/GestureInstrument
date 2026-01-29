@@ -32,8 +32,11 @@ private:
 
     juce::TextButton settingsButton{ "Settings" };
     SettingsComponent settingsPage;
+    juce::ComboBox rootSelector;
+    juce::ComboBox scaleSelector;
+    juce::Label scaleLabel;
 
     juce::OpenGLContext openGLContext;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GestureInstrumentAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GestureInstrumentAudioProcessorEditor)
 };

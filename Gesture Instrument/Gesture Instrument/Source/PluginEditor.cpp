@@ -1,49 +1,78 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor (GestureInstrumentAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), settingsPage(p)
+GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(GestureInstrumentAudioProcessor& p)
+    : AudioProcessorEditor(&p), audioProcessor(p), settingsPage(p)
 {
-    // Output Box MIDI/OSC
+    // Output Mode
     addAndMakeVisible(modeSelector);
     modeSelector.addItem("OSC", 1);
     modeSelector.addItem("MIDI", 2);
 
     switch (audioProcessor.currentOutputMode) {
-        case OutputMode::OSC_Only:  modeSelector.setSelectedId(1); break;
-        case OutputMode::MIDI_Only: modeSelector.setSelectedId(2); break;
+    case OutputMode::OSC_Only:  modeSelector.setSelectedId(1); break;
+    case OutputMode::MIDI_Only: modeSelector.setSelectedId(2); break;
     }
-
     modeSelector.addListener(this);
 
     addAndMakeVisible(modeLabel);
     modeLabel.setText("Output Mode:", juce::dontSendNotification);
     modeLabel.attachToComponent(&modeSelector, true);
 
+    // Connection Status
     addAndMakeVisible(connectionStatusLabel);
     connectionStatusLabel.setText("Checking Sensor...", juce::dontSendNotification);
     connectionStatusLabel.setJustificationType(juce::Justification::centredRight);
     connectionStatusLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
 
-    //Settings
+    // Settings Page+Button
     addAndMakeVisible(settingsButton);
     settingsButton.onClick = [this] {
-        settingsPage.setVisible(true); 
-        settingsButton.setVisible(false); 
+        settingsPage.setVisible(true);
+        settingsButton.setVisible(false);
+
+        // Hide Scale controls when settings are open
+        rootSelector.setVisible(false);
+        scaleSelector.setVisible(false);
         };
 
     addChildComponent(settingsPage);
-    settingsPage.setVisible(false); 
+    settingsPage.setVisible(false);
 
-    //  closing the settings
     settingsPage.closeButton.onClick = [this] {
         settingsPage.setVisible(false);
         settingsButton.setVisible(true);
+
+        // Show Scale controls again
+        rootSelector.setVisible(true);
+        scaleSelector.setVisible(true);
         };
 
+
+    // Root Note Selector
+    addAndMakeVisible(rootSelector);
+    rootSelector.addItemList({ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }, 1);
+    rootSelector.setSelectedId(p.rootNote + 1);
+    rootSelector.onChange = [this] { audioProcessor.rootNote = rootSelector.getSelectedId() - 1; };
+
+    // Scale Type Selector
+    addAndMakeVisible(scaleSelector);
+    scaleSelector.addItem("Chromatic", 1);
+    scaleSelector.addItem("Major", 2);
+    scaleSelector.addItem("Minor", 3);
+    scaleSelector.addItem("Pentatonic", 4);
+    scaleSelector.setSelectedId(p.scaleType + 1);
+    scaleSelector.onChange = [this] { audioProcessor.scaleType = scaleSelector.getSelectedId() - 1; };
+
+    // Label
+    addAndMakeVisible(scaleLabel);
+    scaleLabel.setText("Key / Scale:", juce::dontSendNotification);
+    scaleLabel.attachToComponent(&rootSelector, true);
+    scaleLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+
+    // Graphics Setup
     setResizable(true, true);
     setResizeLimits(800, 600, 3000, 2000);
-
     setOpaque(true);
 
     openGLContext.attachTo(*this);
@@ -55,18 +84,18 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor (Ge
     startTimerHz(60);
     }
 
-GestureInstrumentAudioProcessorEditor::~GestureInstrumentAudioProcessorEditor(){
-    
+
+GestureInstrumentAudioProcessorEditor::~GestureInstrumentAudioProcessorEditor() {
     openGLContext.detach();
     stopTimer();
-
 }
 
 //==============================================================================
-void GestureInstrumentAudioProcessorEditor::paint (juce::Graphics& g) {
+void GestureInstrumentAudioProcessorEditor::paint(juce::Graphics& g) {
     g.fillAll(juce::Colours::black);
 
     drawGrid(g);
+
     static const juce::String leftLabel("L");
     static const juce::String rightLabel("R");
 
@@ -74,18 +103,14 @@ void GestureInstrumentAudioProcessorEditor::paint (juce::Graphics& g) {
     drawHand(g, audioProcessor.rightHand, juce::Colours::orange, rightLabel);
 }
 
-
-
 void GestureInstrumentAudioProcessorEditor::drawHand(juce::Graphics& g, const HandData& hand, juce::Colour colour, const juce::String& label) {
     if (!hand.isPresent) return;
 
     g.setColour(colour);
 
-    // Cache Width/Height to avoid calling function multiple times
     float w = (float)getWidth();
     float h = (float)getHeight();
 
-    // Map Coordinates
     float mapX = juce::jmap(hand.currentHandPositionX, -300.0f, 300.0f, 0.0f, w);
     float mapY = juce::jmap(hand.currentHandPositionY, 0.0f, 600.0f, h, 0.0f);
 
@@ -102,7 +127,6 @@ void GestureInstrumentAudioProcessorEditor::drawHand(juce::Graphics& g, const Ha
 
     g.setColour(colour);
 
-    // Draw Fingers
     for (const auto& finger : hand.fingers)
     {
         float tipX = juce::jmap(finger.fingerPositionX, -300.0f, 300.0f, 0.0f, w);
@@ -142,20 +166,34 @@ void GestureInstrumentAudioProcessorEditor::drawGrid(juce::Graphics& g) {
 
 void GestureInstrumentAudioProcessorEditor::resized() {
     int margin = 10;
-    int buttonW = 120;
+    int topBarY = margin;
 
+    //Settings Button in Bottom Center
+    int buttonW = 120;
     settingsButton.setBounds(getLocalBounds().getCentreX() - (buttonW / 2), margin, buttonW, 30);
     settingsPage.setBounds(getLocalBounds());
 
-    connectionStatusLabel.setBounds(getWidth() - 200 - margin, margin, 200, 20);
-    modeSelector.setBounds(getWidth() - 160 - margin, margin + 30, 150, 30);
+    // Connection Status in Top Right
+    connectionStatusLabel.setBounds(getWidth() - 200 - margin, topBarY, 200, 20);
+
+    // Output Mode in Top Right, below status
+    modeSelector.setBounds(getWidth() - 160 - margin, topBarY + 30, 150, 30);
+
+    // Scale Controls in Top Left
+    int controlHeight = 30;
+
+    // Root Note Positioned with margin
+    rootSelector.setBounds(margin + 80, topBarY + 10, 60, controlHeight);
+
+    // Scale Type Positioned next to Root
+    scaleSelector.setBounds(rootSelector.getRight() + 10, topBarY + 10, 120, controlHeight);
 }
 
 void GestureInstrumentAudioProcessorEditor::timerCallback() {
-
     updateConnectionStatus();
     repaint();
 }
+
 
 void GestureInstrumentAudioProcessorEditor::updateConnectionStatus() {
     bool connected = audioProcessor.isSensorConnected;
@@ -170,7 +208,7 @@ void GestureInstrumentAudioProcessorEditor::updateConnectionStatus() {
     }
 }
 
-void GestureInstrumentAudioProcessorEditor::comboBoxChanged(juce::ComboBox * box)
+void GestureInstrumentAudioProcessorEditor::comboBoxChanged(juce::ComboBox* box)
 {
     if (box == &modeSelector) {
         int id = modeSelector.getSelectedId();
@@ -179,4 +217,3 @@ void GestureInstrumentAudioProcessorEditor::comboBoxChanged(juce::ComboBox * box
         if (id == 2) audioProcessor.currentOutputMode = OutputMode::MIDI_Only;
     }
 }
-

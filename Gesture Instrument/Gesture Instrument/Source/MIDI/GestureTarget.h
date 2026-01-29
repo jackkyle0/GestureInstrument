@@ -4,12 +4,12 @@
 enum class GestureTarget
 {
     None = 0,
-    Volume,     // MIDI CC 7
-    Pitch,      // MIDI Note
-    Modulation, // MIDI CC 1
-    Expression, // MIDI CC 11
-    Cutoff,     // MIDI CC 74
-    Resonance   // MIDI CC 71
+    Volume,     // CC 7
+    Pitch,      // Note
+    Modulation, // CC 1
+    Expression, // CC 11
+    Cutoff,     // CC 74
+    Resonance   // CC 71
 };
 
 static juce::String getTargetName(GestureTarget t) {

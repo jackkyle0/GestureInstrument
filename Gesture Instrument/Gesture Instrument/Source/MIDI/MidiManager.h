@@ -5,9 +5,15 @@
 
 class MidiManager {
 public:
-    void processHandData(juce::MidiBuffer& midiMessages, const HandData& left, const HandData& right, float sensitivity, float minH, float maxH,
-        GestureTarget leftXTarget, GestureTarget leftYTarget, GestureTarget rightXTarget, GestureTarget rightYTarget)
+    void processHandData(juce::MidiBuffer& midiMessages,
+        const HandData& left, const HandData& right,
+        float sensitivity, float minH, float maxH,
+        GestureTarget leftXTarget, GestureTarget leftYTarget,  
+        GestureTarget rightXTarget, GestureTarget rightYTarget, 
+        int rootNote, int scaleType)                            
     {
+      
+    
         // Calculate values --0.0 to 1.0-- for every axis
         float leftX = calculateX(left, sensitivity);
         float leftY = calculateY(left, minH, maxH);
@@ -22,7 +28,7 @@ public:
         if (rightXTarget == GestureTarget::Pitch) pitchValue = rightX;
         if (rightYTarget == GestureTarget::Pitch) pitchValue = rightY;
 
-        handleNoteLogic(midiMessages, pitchValue);
+        handleNoteLogic(midiMessages, pitchValue, rootNote, scaleType);
 
        // sennd cc value to what is assigned 
         if (left.isPresent) {
@@ -52,11 +58,44 @@ private:
         return juce::jlimit(0.0f, 1.0f, juce::jmap(h.currentHandPositionY, min, max, 0.0f, 1.0f));
     }
 
+    int quantiseNote(int note, int root, int scale) {
+        if (scale == 0) return note; 
+
+        // Intervals 1=valid note
+        // Major: W W H W W W H (0, 2, 4, 5, 7, 9, 11)
+        static const int major[] = { 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1 };
+        // Minor: W H W W H W W (0, 2, 3, 5, 7, 8, 10)
+        static const int minor[] = { 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0 };
+        // Pentatonic Major: (0, 2, 4, 7, 9)
+        static const int penta[] = { 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0 };
+
+        const int* currentIntervals = major;
+        if (scale == 2) currentIntervals = minor;
+        if (scale == 3) currentIntervals = penta;
+
+        // Calculate the note relative to the root
+        int relativeNote = (note - root) % 12;
+        if (relativeNote < 0) relativeNote += 12;
+
+        // If it's already in scale, return it
+        if (currentIntervals[relativeNote] == 1) return note;
+
+        // If not, try moving down 1 semitone, then up 1 semitone
+        int down = (relativeNote - 1 + 12) % 12;
+        if (currentIntervals[down] == 1) return note - 1;
+
+        return note + 1;
+    }
+
+    
     // pitch related logic
-    void handleNoteLogic(juce::MidiBuffer& midi, float val) {
+    void handleNoteLogic(juce::MidiBuffer& midi, float val, int root, int scale) {
         if (val >= 0.0f) {
-            // Map 0-1 to C3(48) - C5(72)
-            int note = (int)juce::jmap(val, 0.0f, 1.0f, 48.0f, 72.0f);
+            // Map 0.0-1.0 to a wider range 
+            int rawNote = (int)juce::jmap(val, 0.0f, 1.0f, 48.0f, 84.0f);
+
+            // Quantise note
+            int note = quantiseNote(rawNote, root, scale);
 
             if (note != lastMidiNote || !isNoteOn) {
                 if (isNoteOn) midi.addEvent(juce::MidiMessage::noteOff(1, lastMidiNote), 0);
@@ -66,7 +105,6 @@ private:
             }
         }
         else if (isNoteOn) {
-            // Hand removed? Kill note.
             midi.addEvent(juce::MidiMessage::noteOff(1, lastMidiNote), 0);
             isNoteOn = false;
         }
