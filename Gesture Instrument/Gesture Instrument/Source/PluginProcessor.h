@@ -52,6 +52,8 @@ public:
         oscManager.connect(newIp, newPort);
     }
 
+    int octaveRange = 2;
+
     //==============================================================================
     
     OutputMode currentOutputMode = OutputMode::MIDI_Only;

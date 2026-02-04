@@ -8,7 +8,6 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
 {
     setOpaque(true);
 
-  
     auto getTargetFromId = [](int id) -> GestureTarget {
         if (id == 1) return GestureTarget::Volume;
         if (id == 2) return GestureTarget::Pitch;
@@ -72,7 +71,6 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
     addAndMakeVisible(minHeightControl);
     addAndMakeVisible(maxHeightControl);
 
-   
     sensitivityControl.slider.onValueChange = [this] { audioProcessor.sensitivityLevel = (float)sensitivityControl.slider.getValue(); };
     minHeightControl.slider.onValueChange = [this] { audioProcessor.minHeightThreshold = (float)minHeightControl.slider.getValue(); };
     maxHeightControl.slider.onValueChange = [this] { audioProcessor.maxHeightThreshold = (float)maxHeightControl.slider.getValue(); };
@@ -85,7 +83,7 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
     instrumentSelector.addItem("Piano (1)", 1);
     instrumentSelector.addItem("Warm Pad (90)", 90);
     instrumentSelector.addItem("Choir Pad (92)", 92);
-    instrumentSelector.addItem("Sci-Fi (97)", 97); // "Soundtrack"
+    instrumentSelector.addItem("Sci-Fi (97)", 97);
     instrumentSelector.addItem("Atmosphere (100)", 100);
 
     instrumentSelector.setSelectedId(p.currentInstrument);
@@ -115,15 +113,14 @@ void SettingsComponent::resized() {
 
     auto bottomArea = bounds.removeFromBottom(180);
 
-
     auto leftCol = bounds.removeFromLeft(bounds.getWidth() / 2).reduced(10, 0);
-    auto rightCol = bounds.reduced(10, 0); 
+    auto rightCol = bounds.reduced(10, 0);
     leftHandLabel.setBounds(leftCol.removeFromTop(30));
     rightHandLabel.setBounds(rightCol.removeFromTop(30));
 
     auto stackRow = [](juce::Rectangle<int>& area, juce::Component& c) {
-        c.setBounds(area.removeFromTop(25)); // Give row 25px height
-        area.removeFromTop(5);               // Burn 5px for spacing
+        c.setBounds(area.removeFromTop(25));
+        area.removeFromTop(5);
         };
 
     stackRow(leftCol, leftXRow);
@@ -152,15 +149,21 @@ void SettingsComponent::resized() {
     stackRow(rightCol, rightRingRow);
     stackRow(rightCol, rightPinkyRow);
 
+    // Only midi mode
+    bool isMidi = (audioProcessor.currentOutputMode == OutputMode::MIDI_Only);
+    instrumentSelector.setVisible(isMidi);
+    instrumentLabel.setVisible(isMidi);
 
-    instrumentSelector.setBounds(bottomArea.removeFromTop(30).reduced(80, 0));
+    if (isMidi) {
+        instrumentSelector.setBounds(bottomArea.removeFromTop(30).reduced(80, 0));
+        bottomArea.removeFromTop(10); 
+    }
 
-    bottomArea.removeFromTop(10); // Spacer
-
+    // Sliders
     sensitivityControl.setBounds(bottomArea.removeFromTop(40));
-    bottomArea.removeFromTop(5); // Spacer
+    bottomArea.removeFromTop(5);
     minHeightControl.setBounds(bottomArea.removeFromTop(40));
-    bottomArea.removeFromTop(5); // Spacer
+    bottomArea.removeFromTop(5);
     maxHeightControl.setBounds(bottomArea.removeFromTop(40));
 
     closeButton.setBounds(getLocalBounds().getCentreX() - 50, getHeight() - 40, 100, 30);

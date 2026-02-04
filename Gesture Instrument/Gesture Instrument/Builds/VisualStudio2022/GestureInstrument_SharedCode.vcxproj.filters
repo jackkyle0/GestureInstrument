@@ -3699,6 +3699,9 @@
     <ClInclude Include="..\..\Source\Helpers\LeapService.h">
       <Filter>GestureInstrument\Source\Helpers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\Helpers\ScaleQuantiser.h">
+      <Filter>GestureInstrument\Source\Helpers</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\UI\GuiComponents.h">
       <Filter>GestureInstrument\Source\UI</Filter>
     </ClInclude>

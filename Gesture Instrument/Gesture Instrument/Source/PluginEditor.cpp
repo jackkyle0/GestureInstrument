@@ -66,6 +66,25 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(Ges
     scaleLabel.attachToComponent(&rootSelector, true);
     scaleLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 
+    // Octave setup
+    addAndMakeVisible(octaveSelector);
+    octaveSelector.addItem("1 Octave", 1);
+    octaveSelector.addItem("2 Octaves", 2);
+    octaveSelector.addItem("3 Octaves", 3);
+    octaveSelector.addItem("4 Octaves", 4);
+
+    // Default to 2 if not set
+    octaveSelector.setSelectedId(p.octaveRange > 0 ? p.octaveRange : 2, juce::dontSendNotification);
+
+    octaveSelector.onChange = [this] {
+        audioProcessor.octaveRange = octaveSelector.getSelectedId();
+        };
+
+    addAndMakeVisible(octaveLabel);
+    octaveLabel.setText("Range:", juce::dontSendNotification);
+    octaveLabel.attachToComponent(&octaveSelector, true);
+    octaveLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+
 
     // Graphics Setup
     setResizable(true, true);
@@ -285,6 +304,7 @@ void GestureInstrumentAudioProcessorEditor::resized() {
     int controlHeight = 30;
     rootSelector.setBounds(margin + 80, topBarY + 10, 60, controlHeight);
     scaleSelector.setBounds(rootSelector.getRight() + 10, topBarY + 10, 120, controlHeight);
+    octaveSelector.setBounds(scaleSelector.getRight() + 10, topBarY + 10, 100, controlHeight);
 }
 
 void GestureInstrumentAudioProcessorEditor::timerCallback() {

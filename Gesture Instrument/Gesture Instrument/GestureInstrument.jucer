@@ -9,6 +9,8 @@
         <FILE id="SiC2iO" name="HandData.h" compile="0" resource="0" file="Source/Helpers/HandData.h"/>
         <FILE id="ioJAFr" name="LeapService.cpp" compile="1" resource="0" file="Source/Helpers/LeapService.cpp"/>
         <FILE id="jzuoYN" name="LeapService.h" compile="0" resource="0" file="Source/Helpers/LeapService.h"/>
+        <FILE id="QfyxXS" name="ScaleQuantiser.h" compile="0" resource="0"
+              file="Source/Helpers/ScaleQuantiser.h"/>
       </GROUP>
       <GROUP id="{3C4CCF07-A996-D733-F72A-AA0DE7042D0F}" name="UI">
         <FILE id="K8mZiB" name="GuiComponents.h" compile="0" resource="0" file="Source/UI/GuiComponents.h"/>

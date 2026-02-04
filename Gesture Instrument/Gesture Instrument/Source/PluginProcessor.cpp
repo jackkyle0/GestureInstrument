@@ -102,11 +102,14 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
    
     // OSC
     if (currentOutputMode == OutputMode::OSC_Only) {
-        oscManager.processHandData(
-            leftHand, rightHand,
+        oscManager.processHandData(leftHand, rightHand,
             sensitivityLevel, minHeightThreshold, maxHeightThreshold,
-            leftXTarget, leftYTarget, leftZTarget, leftRollTarget,
-            rightXTarget, rightYTarget, rightZTarget, rightRollTarget
+            leftXTarget, leftYTarget, leftZTarget, leftRollTarget, leftGrabTarget, leftPinchTarget,
+            leftThumbTarget, leftIndexTarget, leftMiddleTarget, leftRingTarget, leftPinkyTarget,
+
+            rightXTarget, rightYTarget, rightZTarget, rightRollTarget, rightGrabTarget, rightPinchTarget,
+            rightThumbTarget, rightIndexTarget, rightMiddleTarget, rightRingTarget, rightPinkyTarget,
+            rootNote, scaleType, octaveRange
         );
     }
 
@@ -120,7 +123,7 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
 
             rightXTarget, rightYTarget, rightZTarget, rightRollTarget, rightGrabTarget, rightPinchTarget,
             rightThumbTarget, rightIndexTarget, rightMiddleTarget, rightRingTarget, rightPinkyTarget,
-            rootNote, scaleType
+            rootNote, scaleType, octaveRange
         );
     }
 }
