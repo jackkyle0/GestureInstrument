@@ -70,7 +70,7 @@ public:
                     return juce::jlimit(0.0f, 1.0f, juce::jmap(h.fingers[idx].fingerPositionY, minH, maxH, 0.0f, 1.0f));
                     };
 
-                // We know the array is size 5, so we can just call them directly:
+ 
                 sendCC(midiMessages, tThumb, getFingerVal(0));  // Thumb
                 sendCC(midiMessages, tIndex, getFingerVal(1));  // Index
                 sendCC(midiMessages, tMiddle, getFingerVal(2)); // Middle
