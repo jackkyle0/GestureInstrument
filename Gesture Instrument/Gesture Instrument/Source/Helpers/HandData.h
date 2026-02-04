@@ -15,6 +15,8 @@ struct HandData
     float currentHandPositionY = 0.0f;
     float currentHandPositionZ = 0.0f;
     float currentWristRotation = 0.0f;
+    float grabStrength = 0.0f;
+    float pinchStrength = 0.0f;
     bool isPinching = false;
     bool isPresent = false;
     FingerData fingers[5];

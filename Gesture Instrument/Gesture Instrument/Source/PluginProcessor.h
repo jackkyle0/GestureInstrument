@@ -54,7 +54,7 @@ public:
 
     //==============================================================================
     
-    OutputMode currentOutputMode = OutputMode::OSC_Only;
+    OutputMode currentOutputMode = OutputMode::MIDI_Only;
     
     float sensitivityLevel = 1.0f;   
     float minHeightThreshold = 50.0f; 
@@ -65,17 +65,36 @@ public:
 
     
     int leftHandTargetCC = 1;   
-    int rightHandTargetCC = 7;  
+    int rightHandTargetCC = 7; 
+
+    int currentInstrument = 90;
+    bool instrumentChanged = true;
     
     GestureTarget leftXTarget = GestureTarget::None;
     GestureTarget leftYTarget = GestureTarget::Volume; // Default
     GestureTarget leftZTarget = GestureTarget::None;
     GestureTarget leftRollTarget = GestureTarget::None;
+    GestureTarget leftGrabTarget = GestureTarget::None;
+    GestureTarget leftPinchTarget = GestureTarget::None;
+
+    GestureTarget leftThumbTarget = GestureTarget::None;
+    GestureTarget leftIndexTarget = GestureTarget::None;
+    GestureTarget leftMiddleTarget = GestureTarget::None;
+    GestureTarget leftRingTarget = GestureTarget::None;
+    GestureTarget leftPinkyTarget = GestureTarget::None;
 
     GestureTarget rightXTarget = GestureTarget::Pitch; // Default
     GestureTarget rightYTarget = GestureTarget::None;
     GestureTarget rightZTarget = GestureTarget::None;
     GestureTarget rightRollTarget = GestureTarget::None;
+    GestureTarget rightGrabTarget = GestureTarget::None;
+    GestureTarget rightPinchTarget = GestureTarget::None;
+
+    GestureTarget rightThumbTarget = GestureTarget::None;
+    GestureTarget rightIndexTarget = GestureTarget::Vibrato;
+    GestureTarget rightMiddleTarget = GestureTarget::None;
+    GestureTarget rightRingTarget = GestureTarget::None;
+    GestureTarget rightPinkyTarget = GestureTarget::None;
 
     HandData leftHand;
     HandData rightHand;

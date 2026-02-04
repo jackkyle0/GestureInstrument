@@ -8,133 +8,160 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
 {
     setOpaque(true);
 
-    // Convert Dropdown ID to Enum
+  
     auto getTargetFromId = [](int id) -> GestureTarget {
         if (id == 1) return GestureTarget::Volume;
         if (id == 2) return GestureTarget::Pitch;
-        if (id == 3) return GestureTarget::None;
+        if (id == 3) return GestureTarget::Modulation;
+        if (id == 4) return GestureTarget::Expression;
+        if (id == 5) return GestureTarget::Resonance;
+        if (id == 6) return GestureTarget::Vibrato;
+        if (id == 7) return GestureTarget::Cutoff;
+        if (id == 8) return GestureTarget::None;
         return GestureTarget::None;
         };
 
-    // Left Hand callbacks
-    leftXRow.comboBox.onChange = [this, getTargetFromId] { audioProcessor.leftXTarget = getTargetFromId(leftXRow.comboBox.getSelectedId()); };
-    leftYRow.comboBox.onChange = [this, getTargetFromId] { audioProcessor.leftYTarget = getTargetFromId(leftYRow.comboBox.getSelectedId()); };
-    leftZRow.comboBox.onChange = [this, getTargetFromId] { audioProcessor.leftZTarget = getTargetFromId(leftZRow.comboBox.getSelectedId()); };
-    leftWristRow.comboBox.onChange = [this, getTargetFromId] { audioProcessor.leftRollTarget = getTargetFromId(leftWristRow.comboBox.getSelectedId()); };
+    auto setupRow = [&](MappingRow& row, GestureTarget& target) {
+        addAndMakeVisible(row);
+        row.comboBox.onChange = [&, getTargetFromId] { target = getTargetFromId(row.comboBox.getSelectedId()); };
+        };
 
-    // Right Hand callbacks
-    rightXRow.comboBox.onChange = [this, getTargetFromId] { audioProcessor.rightXTarget = getTargetFromId(rightXRow.comboBox.getSelectedId()); };
-    rightYRow.comboBox.onChange = [this, getTargetFromId] { audioProcessor.rightYTarget = getTargetFromId(rightYRow.comboBox.getSelectedId()); };
-    rightZRow.comboBox.onChange = [this, getTargetFromId] { audioProcessor.rightZTarget = getTargetFromId(rightZRow.comboBox.getSelectedId()); };
-    rightWristRow.comboBox.onChange = [this, getTargetFromId] { audioProcessor.rightRollTarget = getTargetFromId(rightWristRow.comboBox.getSelectedId()); };
+    // left hand setup
+    setupRow(leftXRow, audioProcessor.leftXTarget);
+    setupRow(leftYRow, audioProcessor.leftYTarget);
+    setupRow(leftZRow, audioProcessor.leftZTarget);
+    setupRow(leftWristRow, audioProcessor.leftRollTarget);
+    setupRow(leftGrabRow, audioProcessor.leftGrabTarget);
+    setupRow(leftPinchRow, audioProcessor.leftPinchTarget);
+    setupRow(leftThumbRow, audioProcessor.leftThumbTarget);
+    setupRow(leftIndexRow, audioProcessor.leftIndexTarget);
+    setupRow(leftMiddleRow, audioProcessor.leftMiddleTarget);
+    setupRow(leftRingRow, audioProcessor.leftRingTarget);
+    setupRow(leftPinkyRow, audioProcessor.leftPinkyTarget);
 
-    // UI Elements
+    // Right hand setup
+    setupRow(rightXRow, audioProcessor.rightXTarget);
+    setupRow(rightYRow, audioProcessor.rightYTarget);
+    setupRow(rightZRow, audioProcessor.rightZTarget);
+    setupRow(rightWristRow, audioProcessor.rightRollTarget);
+    setupRow(rightGrabRow, audioProcessor.rightGrabTarget);
+    setupRow(rightPinchRow, audioProcessor.rightPinchTarget);
+    setupRow(rightThumbRow, audioProcessor.rightThumbTarget);
+    setupRow(rightIndexRow, audioProcessor.rightIndexTarget);
+    setupRow(rightMiddleRow, audioProcessor.rightMiddleTarget);
+    setupRow(rightRingRow, audioProcessor.rightRingTarget);
+    setupRow(rightPinkyRow, audioProcessor.rightPinkyTarget);
+
+    // Labels
     addAndMakeVisible(titleLabel);
     titleLabel.setFont(juce::Font(24.0f, juce::Font::bold));
     titleLabel.setJustificationType(juce::Justification::centred);
 
-    addAndMakeVisible(leftXRow);
-    addAndMakeVisible(leftYRow);
-    addAndMakeVisible(leftZRow);
-    addAndMakeVisible(leftWristRow);
+    addAndMakeVisible(leftHandLabel);
+    leftHandLabel.setFont(juce::Font(18.0f, juce::Font::bold));
+    leftHandLabel.setJustificationType(juce::Justification::centred);
+    leftHandLabel.setColour(juce::Label::textColourId, juce::Colours::cyan);
 
-    addAndMakeVisible(rightXRow);
-    addAndMakeVisible(rightYRow);
-    addAndMakeVisible(rightZRow);
-    addAndMakeVisible(rightWristRow);
+    addAndMakeVisible(rightHandLabel);
+    rightHandLabel.setFont(juce::Font(18.0f, juce::Font::bold));
+    rightHandLabel.setJustificationType(juce::Justification::centred);
+    rightHandLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
 
+    // Sliders
     addAndMakeVisible(sensitivityControl);
     addAndMakeVisible(minHeightControl);
     addAndMakeVisible(maxHeightControl);
 
-    //// Scale controls
-    //addAndMakeVisible(scaleLabel);
-    //scaleLabel.setText("Scale Quantize:", juce::dontSendNotification);
-
-    //addAndMakeVisible(rootSelector);
-    //rootSelector.addItemList({ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }, 1);
-    //rootSelector.setSelectedId(p.rootNote + 1);
-    //rootSelector.onChange = [this] { audioProcessor.rootNote = rootSelector.getSelectedId() - 1; };
-
-    //addAndMakeVisible(scaleSelector);
-    //scaleSelector.addItem("Chromatic", 1);
-    //scaleSelector.addItem("Major", 2);
-    //scaleSelector.addItem("Minor", 3);
-    //scaleSelector.addItem("Pentatonic", 4);
-    //scaleSelector.setSelectedId(p.scaleType + 1);
-    //scaleSelector.onChange = [this] { audioProcessor.scaleType = scaleSelector.getSelectedId() - 1; };
-
-    //// Sliders
-    //sensitivityControl.slider.onValueChange = [this] { audioProcessor.sensitivityLevel = (float)sensitivityControl.slider.getValue(); };
-    //minHeightControl.slider.onValueChange = [this] { audioProcessor.minHeightThreshold = (float)minHeightControl.slider.getValue(); };
-    //maxHeightControl.slider.onValueChange = [this] { audioProcessor.maxHeightThreshold = (float)maxHeightControl.slider.getValue(); };
+   
+    sensitivityControl.slider.onValueChange = [this] { audioProcessor.sensitivityLevel = (float)sensitivityControl.slider.getValue(); };
+    minHeightControl.slider.onValueChange = [this] { audioProcessor.minHeightThreshold = (float)minHeightControl.slider.getValue(); };
+    maxHeightControl.slider.onValueChange = [this] { audioProcessor.maxHeightThreshold = (float)maxHeightControl.slider.getValue(); };
 
     addAndMakeVisible(closeButton);
+
+
+    //  Instrument Selector
+    addAndMakeVisible(instrumentSelector);
+    instrumentSelector.addItem("Piano (1)", 1);
+    instrumentSelector.addItem("Warm Pad (90)", 90);
+    instrumentSelector.addItem("Choir Pad (92)", 92);
+    instrumentSelector.addItem("Sci-Fi (97)", 97); // "Soundtrack"
+    instrumentSelector.addItem("Atmosphere (100)", 100);
+
+    instrumentSelector.setSelectedId(p.currentInstrument);
+
+    instrumentSelector.onChange = [this] {
+        audioProcessor.currentInstrument = instrumentSelector.getSelectedId();
+        audioProcessor.instrumentChanged = true;
+        };
+
+    addAndMakeVisible(instrumentLabel);
+    instrumentLabel.setText("Instrument:", juce::dontSendNotification);
+    instrumentLabel.attachToComponent(&instrumentSelector, true);
 }
 
 SettingsComponent::~SettingsComponent() {}
 
 void SettingsComponent::paint(juce::Graphics& g) {
     g.fillAll(juce::Colours::black);
+    g.setColour(juce::Colours::grey);
+    g.drawVerticalLine(getWidth() / 2, 60, getHeight() - 150);
 }
 
 void SettingsComponent::resized() {
-    auto bounds = getLocalBounds().reduced(40);
+    auto bounds = getLocalBounds().reduced(20);
 
-    juce::FlexBox masterBox;
-    masterBox.flexDirection = juce::FlexBox::Direction::column;
-    masterBox.justifyContent = juce::FlexBox::JustifyContent::flexStart;
+    titleLabel.setBounds(bounds.removeFromTop(40));
 
-    // Title
-    masterBox.items.add(juce::FlexItem(titleLabel).withHeight(40));
+    auto bottomArea = bounds.removeFromBottom(180);
 
-    // add rows
-    auto addRow = [&](juce::Component& c) {
-        masterBox.items.add(juce::FlexItem(c).withHeight(30).withMargin({ 0, 0, 5, 0 }));
+
+    auto leftCol = bounds.removeFromLeft(bounds.getWidth() / 2).reduced(10, 0);
+    auto rightCol = bounds.reduced(10, 0); 
+    leftHandLabel.setBounds(leftCol.removeFromTop(30));
+    rightHandLabel.setBounds(rightCol.removeFromTop(30));
+
+    auto stackRow = [](juce::Rectangle<int>& area, juce::Component& c) {
+        c.setBounds(area.removeFromTop(25)); // Give row 25px height
+        area.removeFromTop(5);               // Burn 5px for spacing
         };
 
-    // Left hand
-    addRow(leftXRow);
-    addRow(leftYRow);
-    addRow(leftZRow);
-    addRow(leftWristRow);
+    stackRow(leftCol, leftXRow);
+    stackRow(leftCol, leftYRow);
+    stackRow(leftCol, leftZRow);
+    stackRow(leftCol, leftWristRow);
+    stackRow(leftCol, leftGrabRow);
+    stackRow(leftCol, leftPinchRow);
+    leftCol.removeFromTop(10); // Gap
+    stackRow(leftCol, leftThumbRow);
+    stackRow(leftCol, leftIndexRow);
+    stackRow(leftCol, leftMiddleRow);
+    stackRow(leftCol, leftRingRow);
+    stackRow(leftCol, leftPinkyRow);
 
-    masterBox.items.add(juce::FlexItem().withHeight(15)); // Spacer
+    stackRow(rightCol, rightXRow);
+    stackRow(rightCol, rightYRow);
+    stackRow(rightCol, rightZRow);
+    stackRow(rightCol, rightWristRow);
+    stackRow(rightCol, rightGrabRow);
+    stackRow(rightCol, rightPinchRow);
+    rightCol.removeFromTop(10); // Gap
+    stackRow(rightCol, rightThumbRow);
+    stackRow(rightCol, rightIndexRow);
+    stackRow(rightCol, rightMiddleRow);
+    stackRow(rightCol, rightRingRow);
+    stackRow(rightCol, rightPinkyRow);
 
-    // Right Hand
-    addRow(rightXRow);
-    addRow(rightYRow);
-    addRow(rightZRow);
-    addRow(rightWristRow);
 
-    masterBox.items.add(juce::FlexItem().withHeight(15)); // Spacer
+    instrumentSelector.setBounds(bottomArea.removeFromTop(30).reduced(80, 0));
 
-    //// Scale controls row
-    //juce::FlexBox scaleRow;
-    //scaleRow.flexDirection = juce::FlexBox::Direction::row;
-    //scaleRow.alignItems = juce::FlexBox::AlignItems::center; // Vertically align text and boxes
+    bottomArea.removeFromTop(10); // Spacer
 
-    //// Add Label
-    //scaleRow.items.add(juce::FlexItem(scaleLabel).withWidth(100));
+    sensitivityControl.setBounds(bottomArea.removeFromTop(40));
+    bottomArea.removeFromTop(5); // Spacer
+    minHeightControl.setBounds(bottomArea.removeFromTop(40));
+    bottomArea.removeFromTop(5); // Spacer
+    maxHeightControl.setBounds(bottomArea.removeFromTop(40));
 
-    //// Add Root Selector
-    //scaleRow.items.add(juce::FlexItem(rootSelector).withWidth(80).withMargin({ 0, 10, 0, 0 }));
-
-    //// Add Scale Type Selector
-    //scaleRow.items.add(juce::FlexItem(scaleSelector).withWidth(120));
-
-    //// Add the whole row to the master box
-    //masterBox.items.add(juce::FlexItem(scaleRow).withHeight(30).withMargin({ 0, 0, 20, 0 }));
-
-    // Sliders
-    auto addSlider = [&](juce::Component& c) {
-        masterBox.items.add(juce::FlexItem(c).withHeight(50).withMargin({ 0, 0, 10, 0 }));
-        };
-    addSlider(sensitivityControl);
-    addSlider(minHeightControl);
-    addSlider(maxHeightControl);
-
-    masterBox.performLayout(bounds);
-
-    closeButton.setBounds(getLocalBounds().getCentreX() - 50, getHeight() - 50, 100, 30);
+    closeButton.setBounds(getLocalBounds().getCentreX() - 50, getHeight() - 40, 100, 30);
 }

@@ -35,10 +35,16 @@ public:
         nameLabel.setText(rowName, juce::dontSendNotification);
         nameLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 
+        // Setup Dropdown
         addAndMakeVisible(comboBox);
-        comboBox.addItem("Volume", 1);
-        comboBox.addItem("Pitch", 2);
-        comboBox.addItem("None", 3);
+        comboBox.addItem("Volume (CC 7)", 1);
+        comboBox.addItem("Pitch (Note)", 2);
+        comboBox.addItem("Modulation (CC 1)", 3);
+        comboBox.addItem("Expression (CC 11)", 4);
+        comboBox.addItem("Resonance (CC 71)", 5);
+        comboBox.addItem("Vibrato (CC 76)", 6);
+        comboBox.addItem("Cutoff (CC 74)", 7);
+        comboBox.addItem("None", 8);
 
         comboBox.setSelectedId(defaultID);
     }
@@ -48,4 +54,6 @@ public:
         nameLabel.setBounds(area.removeFromLeft(150)); 
         comboBox.setBounds(area.reduced(0, 5)); 
     }
+
+
 };

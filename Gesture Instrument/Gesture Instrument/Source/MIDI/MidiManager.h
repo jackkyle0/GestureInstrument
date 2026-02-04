@@ -5,20 +5,41 @@
 
 class MidiManager {
 public:
+
+    void sendProgramChange(juce::MidiBuffer& midi, int programNumber) {
+        // Program Number (0-127)
+        midi.addEvent(juce::MidiMessage::programChange(1, programNumber), 0);
+    }
     void processHandData(juce::MidiBuffer& midiMessages,
         const HandData& left, const HandData& right,
         float sensitivity, float minH, float maxH,
-        GestureTarget leftXTarget, GestureTarget leftYTarget,  
-        GestureTarget rightXTarget, GestureTarget rightYTarget, 
-        int rootNote, int scaleType)                            
+        // Left Targets
+        GestureTarget leftXTarget, GestureTarget leftYTarget,
+        GestureTarget leftZTarget, GestureTarget leftRollTarget,
+        GestureTarget leftGrabTarget, GestureTarget leftPinchTarget,
+        GestureTarget lThumb, GestureTarget lIndex, GestureTarget lMiddle, GestureTarget lRing, GestureTarget lPinky, // New Args
+        // Right Targets
+        GestureTarget rightXTarget, GestureTarget rightYTarget,
+        GestureTarget rightZTarget, GestureTarget rightRollTarget,
+        GestureTarget rightGrabTarget, GestureTarget rightPinchTarget,
+        GestureTarget rThumb, GestureTarget rIndex, GestureTarget rMiddle, GestureTarget rRing, GestureTarget rPinky, // New Args
+        // Scale
+        int rootNote, int scaleType)
     {
-      
-    
+
         // Calculate values --0.0 to 1.0-- for every axis
         float leftX = calculateX(left, sensitivity);
         float leftY = calculateY(left, minH, maxH);
         float rightX = calculateX(right, sensitivity);
         float rightY = calculateY(right, minH, maxH);
+
+        // Calculate Grab/Pinch
+        float leftGrab = left.isPresent ? left.grabStrength : -1.0f;
+        float leftPinch = left.isPresent ? left.pinchStrength : -1.0f;
+        float rightGrab = right.isPresent ? right.grabStrength : -1.0f;
+        float rightPinch = right.isPresent ? right.pinchStrength : -1.0f;
+
+
 
         // check if pitch is assigned
         float pitchValue = -1.0f;
@@ -30,17 +51,44 @@ public:
 
         handleNoteLogic(midiMessages, pitchValue, rootNote, scaleType);
 
-       // sennd cc value to what is assigned 
-        if (left.isPresent) {
-            sendCC(midiMessages, leftXTarget, leftX);
-            sendCC(midiMessages, leftYTarget, leftY);
-        }
-        if (right.isPresent) {
-            sendCC(midiMessages, rightXTarget, rightX);
-            sendCC(midiMessages, rightYTarget, rightY);
-        }
-    }
 
+        auto processHandCCs = [&](const HandData& h, float x, float y, float grab, float pinch,
+            GestureTarget tX, GestureTarget tY, GestureTarget tZ, GestureTarget tRoll, GestureTarget tGrab, GestureTarget tPinch,
+            GestureTarget tThumb, GestureTarget tIndex, GestureTarget tMiddle, GestureTarget tRing, GestureTarget tPinky)
+            {
+                if (!h.isPresent) return;
+
+                sendCC(midiMessages, tX, x);
+                sendCC(midiMessages, tY, y);
+                sendCC(midiMessages, tGrab, grab);
+                sendCC(midiMessages, tPinch, pinch);
+
+                // Helper to map a single finger height safely
+                auto getFingerVal = [&](int idx) {
+                    // Check bounds just to be safe, though fingers[5] is fixed
+                    if (idx < 0 || idx >= 5) return 0.0f;
+                    return juce::jlimit(0.0f, 1.0f, juce::jmap(h.fingers[idx].fingerPositionY, minH, maxH, 0.0f, 1.0f));
+                    };
+
+                // We know the array is size 5, so we can just call them directly:
+                sendCC(midiMessages, tThumb, getFingerVal(0));  // Thumb
+                sendCC(midiMessages, tIndex, getFingerVal(1));  // Index
+                sendCC(midiMessages, tMiddle, getFingerVal(2)); // Middle
+                sendCC(midiMessages, tRing, getFingerVal(3));   // Ring
+                sendCC(midiMessages, tPinky, getFingerVal(4));  // Pinky
+            };
+
+
+        // Process Left
+        processHandCCs(left, leftX, leftY, leftGrab, leftPinch,
+            leftXTarget, leftYTarget, leftZTarget, leftRollTarget, leftGrabTarget, leftPinchTarget,
+            lThumb, lIndex, lMiddle, lRing, lPinky);
+
+        // Process Right
+        processHandCCs(right, rightX, rightY, rightGrab, rightPinch,
+            rightXTarget, rightYTarget, rightZTarget, rightRollTarget, rightGrabTarget, rightPinchTarget,
+            rThumb, rIndex, rMiddle, rRing, rPinky);
+    }
 private:
     int lastMidiNote = -1;
     bool isNoteOn = false;
@@ -110,6 +158,11 @@ private:
         }
     }
 
+    
+    
+
+
+
     void sendCC(juce::MidiBuffer& midi, GestureTarget target, float val) {
         if (val < 0.0f) return; // Hand not present
 
@@ -120,6 +173,7 @@ private:
         case GestureTarget::Expression: ccNumber = 11; break;
         case GestureTarget::Cutoff:     ccNumber = 74; break;
         case GestureTarget::Resonance:  ccNumber = 71; break;
+        case GestureTarget::Vibrato:    ccNumber = 76; break;
         default: return; // none
         }
 

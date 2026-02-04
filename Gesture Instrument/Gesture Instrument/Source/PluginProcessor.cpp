@@ -92,6 +92,11 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
     buffer.clear();
     midiMessages.clear();
 
+    if (instrumentChanged) {
+        midiManager.sendProgramChange(midiMessages, currentInstrument);
+        instrumentChanged = false; // Only send once
+    }
+
     leapService.pollHandData(leftHand, rightHand, isSensorConnected);
 
    
@@ -110,7 +115,11 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
         midiManager.processHandData(
             midiMessages, leftHand, rightHand,
             sensitivityLevel, minHeightThreshold, maxHeightThreshold,
-            leftXTarget, leftYTarget, rightXTarget, rightYTarget,
+            leftXTarget, leftYTarget, leftZTarget, leftRollTarget, leftGrabTarget, leftPinchTarget,
+            leftThumbTarget, leftIndexTarget, leftMiddleTarget, leftRingTarget, leftPinkyTarget,
+
+            rightXTarget, rightYTarget, rightZTarget, rightRollTarget, rightGrabTarget, rightPinchTarget,
+            rightThumbTarget, rightIndexTarget, rightMiddleTarget, rightRingTarget, rightPinkyTarget,
             rootNote, scaleType
         );
     }

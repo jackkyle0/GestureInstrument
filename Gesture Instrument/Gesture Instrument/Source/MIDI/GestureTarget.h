@@ -9,7 +9,8 @@ enum class GestureTarget
     Modulation, // CC 1
     Expression, // CC 11
     Cutoff,     // CC 74
-    Resonance   // CC 71
+    Resonance,  // CC 71
+    Vibrato     // CC 76
 };
 
 static juce::String getTargetName(GestureTarget t) {
@@ -20,6 +21,7 @@ static juce::String getTargetName(GestureTarget t) {
     case GestureTarget::Expression: return "Expression";
     case GestureTarget::Cutoff:     return "Cutoff";
     case GestureTarget::Resonance:  return "Resonance";
+    case GestureTarget::Vibrato:    return "Vibrato";
     default:                        return "None";
     }
 }

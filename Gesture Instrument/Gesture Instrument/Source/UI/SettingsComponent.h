@@ -19,28 +19,44 @@ private:
     GestureInstrumentAudioProcessor& audioProcessor;
 
     juce::Label titleLabel{ "Settings", "Gesture Mapping" };
+    juce::Label leftHandLabel{ "Left Hand", "Left Hand" };
+    juce::Label rightHandLabel{ "Right Hand", "Right Hand" };
 
-    // Left Hand Rows
-    MappingRow leftXRow{ "Left hand X Axis (Side-to-side)", 1 };
-    MappingRow leftYRow{ "Left hand Y Axis (Height)", 2 };
-    MappingRow leftZRow{ "Left hand Z Axis (Depth)", 3 };
-    MappingRow leftWristRow{ "Left hand Wrist Rotation", 3 };
+    // Lefthand rows
+    MappingRow leftXRow{ "X Axis", 1 };
+    MappingRow leftYRow{ "Y Axis", 2 };
+    MappingRow leftZRow{ "Z Axis", 8 };
+    MappingRow leftWristRow{ "Wrist Roll", 8 };
+    MappingRow leftGrabRow{ "Grab (Fist)", 8 };
+    MappingRow leftPinchRow{ "Pinch", 8 };
+    // Fingers
+    MappingRow leftThumbRow{ "Thumb", 8 };
+    MappingRow leftIndexRow{ "Index", 8 };
+    MappingRow leftMiddleRow{ "Middle", 8 };
+    MappingRow leftRingRow{ "Ring", 8 };
+    MappingRow leftPinkyRow{ "Pinky", 8 };
 
-    // Right Hand Rows
-    MappingRow rightXRow{ "Right hand X Axis (Side-to-side)", 1 };
-    MappingRow rightYRow{ "Right hand Y Axis (Height)", 2 };
-    MappingRow rightZRow{ "Right hand Z Axis (Depth)", 3 };
-    MappingRow rightWristRow{ "Right hand Wrist Rotation", 3 };
+    // Right hand rows
+    MappingRow rightXRow{ "X Axis", 1 };
+    MappingRow rightYRow{ "Y Axis", 2 };
+    MappingRow rightZRow{ "Z Axis", 8 };
+    MappingRow rightWristRow{ "Wrist Roll", 8 };
+    MappingRow rightGrabRow{ "Grab (Fist)", 8 };
+    MappingRow rightPinchRow{ "Pinch", 8 };
+    // Fingers
+    MappingRow rightThumbRow{ "Thumb", 8 };
+    MappingRow rightIndexRow{ "Index", 8 };
+    MappingRow rightMiddleRow{ "Middle", 8 };
+    MappingRow rightRingRow{ "Ring", 8 };
+    MappingRow rightPinkyRow{ "Pinky", 8 };
 
     // Sliders
     LabeledSlider sensitivityControl;
     LabeledSlider minHeightControl;
     LabeledSlider maxHeightControl;
 
-    // Scale controls
-    juce::Label scaleLabel;    
-    juce::ComboBox rootSelector;
-    juce::ComboBox scaleSelector;
+    juce::ComboBox instrumentSelector;
+    juce::Label instrumentLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsComponent)
 };
