@@ -17,7 +17,7 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
         case 3: return GestureTarget::Modulation;
         case 4: return GestureTarget::Expression;
 
-            //  Shaping
+            // Shaping
         case 5: return GestureTarget::Cutoff;
         case 6: return GestureTarget::Resonance;
         case 10: return GestureTarget::Vibrato;
@@ -129,29 +129,28 @@ void SettingsComponent::resized() {
 
     titleLabel.setBounds(bounds.removeFromTop(40));
 
-    auto bottomArea = bounds.removeFromBottom(100);
-
+    auto bottomArea = bounds.removeFromBottom(100); 
+    
     auto mainArea = bounds;
 
--    int colWidth = 320;
+    int colWidth = 320; 
     int colGap = 40;
-
-    // Center the two columns
+    
     int totalWidth = (colWidth * 2) + colGap;
     int startX = (mainArea.getWidth() - totalWidth) / 2;
-
+    
     auto leftCol = mainArea.removeFromLeft(startX + colWidth).removeFromRight(colWidth);
     auto rightCol = mainArea.removeFromRight(startX + colWidth).removeFromLeft(colWidth);
-
+    
     leftHandLabel.setBounds(leftCol.removeFromTop(30));
     rightHandLabel.setBounds(rightCol.removeFromTop(30));
 
     auto stackRow = [](juce::Rectangle<int>& area, juce::Component& c) {
-        c.setBounds(area.removeFromTop(22)); // Reduced height slightly
-        area.removeFromTop(4);               // Small gap
-        };
+        c.setBounds(area.removeFromTop(22)); 
+        area.removeFromTop(4);               
+    };
 
-    // Left hand rows
+    // Lefthand rows
     stackRow(leftCol, leftXRow);
     stackRow(leftCol, leftYRow);
     stackRow(leftCol, leftZRow);
@@ -165,7 +164,7 @@ void SettingsComponent::resized() {
     stackRow(leftCol, leftRingRow);
     stackRow(leftCol, leftPinkyRow);
 
-    // Right hand rows
+    // Righthand rows
     stackRow(rightCol, rightXRow);
     stackRow(rightCol, rightYRow);
     stackRow(rightCol, rightZRow);
@@ -188,7 +187,7 @@ void SettingsComponent::resized() {
     }
 
     int sliderWidth = bottomArea.getWidth() / 3;
-
+    
     sensitivityControl.setBounds(bottomArea.removeFromLeft(sliderWidth).reduced(10, 0));
     minHeightControl.setBounds(bottomArea.removeFromLeft(sliderWidth).reduced(10, 0));
     maxHeightControl.setBounds(bottomArea.removeFromLeft(sliderWidth).reduced(10, 0));
