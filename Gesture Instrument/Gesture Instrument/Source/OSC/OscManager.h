@@ -74,11 +74,29 @@ private:
         switch (target) {
         case GestureTarget::Volume:     paramName = "volume"; break;
         case GestureTarget::Pitch:      paramName = "pitch"; break;
+        case GestureTarget::NoteTrigger:paramName = "note"; break;
         case GestureTarget::Modulation: paramName = "mod"; break;
         case GestureTarget::Expression: paramName = "expr"; break;
+        case GestureTarget::Breath:     paramName = "breath"; break;
+
         case GestureTarget::Cutoff:     paramName = "cutoff"; break;
         case GestureTarget::Resonance:  paramName = "res"; break;
+        case GestureTarget::Attack:     paramName = "attack"; break;
+        case GestureTarget::Release:    paramName = "release"; break;
         case GestureTarget::Vibrato:    paramName = "vib"; break;
+
+        case GestureTarget::Pan:        paramName = "pan"; break;
+        case GestureTarget::Reverb:     paramName = "reverb"; break;
+        case GestureTarget::Chorus:     paramName = "chorus"; break;
+
+        case GestureTarget::Sustain:    paramName = "sustain"; break;
+        case GestureTarget::Portamento: paramName = "portamento"; break;
+
+        case GestureTarget::Macro1:     paramName = "macro1"; break;
+        case GestureTarget::Macro2:     paramName = "macro2"; break;
+        case GestureTarget::Macro3:     paramName = "macro3"; break;
+        case GestureTarget::Macro4:     paramName = "macro4"; break;
+
         default: return;
         }
 

@@ -7,14 +7,12 @@
 #include "MIDI/MidiManager.h"
 #include "MIDI/GestureTarget.h"
 
-
 enum class OutputMode {
-
     OSC_Only,
     MIDI_Only
 };
 
-class GestureInstrumentAudioProcessor  : public juce::AudioProcessor 
+class GestureInstrumentAudioProcessor : public juce::AudioProcessor
 {
 public:
     GestureInstrumentAudioProcessor();
@@ -23,11 +21,11 @@ public:
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
-   #ifndef JucePlugin_PreferredChannelConfigurations
-    bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
-   #endif
+#ifndef JucePlugin_PreferredChannelConfigurations
+    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
+#endif
 
-    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -41,12 +39,12 @@ public:
 
     int getNumPrograms() override;
     int getCurrentProgram() override;
-    void setCurrentProgram (int index) override;
-    const juce::String getProgramName (int index) override;
-    void changeProgramName (int index, const juce::String& newName) override;
+    void setCurrentProgram(int index) override;
+    const juce::String getProgramName(int index) override;
+    void changeProgramName(int index, const juce::String& newName) override;
 
-    void getStateInformation (juce::MemoryBlock& destData) override;
-    void setStateInformation (const void* data, int sizeInBytes) override;
+    void getStateInformation(juce::MemoryBlock& destData) override;
+    void setStateInformation(const void* data, int sizeInBytes) override;
 
     void updateOscSettings(juce::String newIp, int newPort) {
         oscManager.connect(newIp, newPort);
@@ -55,25 +53,21 @@ public:
     int octaveRange = 2;
 
     //==============================================================================
-    
+
     OutputMode currentOutputMode = OutputMode::MIDI_Only;
-    
-    float sensitivityLevel = 1.0f;   
-    float minHeightThreshold = 50.0f; 
-    float maxHeightThreshold = 300.0f;
 
-    int rootNote = 0; 
-    int scaleType = 0;  
+    int rootNote = 0;
+    int scaleType = 0;
 
-    
-    int leftHandTargetCC = 1;   
-    int rightHandTargetCC = 7; 
+    int leftHandTargetCC = 1;
+    int rightHandTargetCC = 7;
 
     int currentInstrument = 90;
     bool instrumentChanged = true;
-    
+
+    // MAPPINGS
     GestureTarget leftXTarget = GestureTarget::None;
-    GestureTarget leftYTarget = GestureTarget::Volume; // Default
+    GestureTarget leftYTarget = GestureTarget::Pitch;
     GestureTarget leftZTarget = GestureTarget::None;
     GestureTarget leftRollTarget = GestureTarget::None;
     GestureTarget leftGrabTarget = GestureTarget::None;
@@ -85,12 +79,12 @@ public:
     GestureTarget leftRingTarget = GestureTarget::None;
     GestureTarget leftPinkyTarget = GestureTarget::None;
 
-    GestureTarget rightXTarget = GestureTarget::Pitch; // Default
-    GestureTarget rightYTarget = GestureTarget::None;
+    GestureTarget rightXTarget = GestureTarget::None;
+    GestureTarget rightYTarget = GestureTarget::Pitch;
     GestureTarget rightZTarget = GestureTarget::None;
     GestureTarget rightRollTarget = GestureTarget::None;
     GestureTarget rightGrabTarget = GestureTarget::None;
-    GestureTarget rightPinchTarget = GestureTarget::None;
+    GestureTarget rightPinchTarget = GestureTarget::Modulation;
 
     GestureTarget rightThumbTarget = GestureTarget::None;
     GestureTarget rightIndexTarget = GestureTarget::Vibrato;
@@ -102,10 +96,21 @@ public:
     HandData rightHand;
     bool isSensorConnected = false;
 
+    float sensitivityLevel = 1.0f;
+
+    float minWidthThreshold = 1.0f;
+    float maxWidthThreshold = 350.0f;
+
+    float minHeightThreshold = 50.0f;
+    float maxHeightThreshold = 400.0f;
+
+    float minDepthThreshold = -150.0f;
+    float maxDepthThreshold = 150.0f;
+
 private:
     LeapService leapService;
     OscManager oscManager;
     MidiManager midiManager;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GestureInstrumentAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GestureInstrumentAudioProcessor)
 };

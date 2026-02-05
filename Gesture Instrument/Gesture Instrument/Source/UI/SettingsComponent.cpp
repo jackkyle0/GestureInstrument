@@ -9,15 +9,33 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
     setOpaque(true);
 
     auto getTargetFromId = [](int id) -> GestureTarget {
-        if (id == 1) return GestureTarget::Volume;
-        if (id == 2) return GestureTarget::Pitch;
-        if (id == 3) return GestureTarget::Modulation;
-        if (id == 4) return GestureTarget::Expression;
-        if (id == 5) return GestureTarget::Resonance;
-        if (id == 6) return GestureTarget::Vibrato;
-        if (id == 7) return GestureTarget::Cutoff;
-        if (id == 8) return GestureTarget::None;
-        return GestureTarget::None;
+        switch (id) {
+            // Essentials
+        case 1: return GestureTarget::Volume;
+        case 2: return GestureTarget::Pitch;
+        case 13: return GestureTarget::NoteTrigger;
+        case 3: return GestureTarget::Modulation;
+        case 4: return GestureTarget::Expression;
+
+            //  Shaping
+        case 5: return GestureTarget::Cutoff;
+        case 6: return GestureTarget::Resonance;
+        case 10: return GestureTarget::Vibrato;
+
+            // Spatial
+        case 7: return GestureTarget::Pan;
+        case 8: return GestureTarget::Reverb;
+
+            // Switches
+        case 9: return GestureTarget::Sustain;
+
+            // Macros
+        case 11: return GestureTarget::Macro1;
+        case 12: return GestureTarget::Macro2;
+
+        case 99: return GestureTarget::None;
+        default: return GestureTarget::None;
+        }
         };
 
     auto setupRow = [&](MappingRow& row, GestureTarget& target) {
@@ -111,60 +129,69 @@ void SettingsComponent::resized() {
 
     titleLabel.setBounds(bounds.removeFromTop(40));
 
-    auto bottomArea = bounds.removeFromBottom(180);
+    auto bottomArea = bounds.removeFromBottom(100);
 
-    auto leftCol = bounds.removeFromLeft(bounds.getWidth() / 2).reduced(10, 0);
-    auto rightCol = bounds.reduced(10, 0);
+    auto mainArea = bounds;
+
+-    int colWidth = 320;
+    int colGap = 40;
+
+    // Center the two columns
+    int totalWidth = (colWidth * 2) + colGap;
+    int startX = (mainArea.getWidth() - totalWidth) / 2;
+
+    auto leftCol = mainArea.removeFromLeft(startX + colWidth).removeFromRight(colWidth);
+    auto rightCol = mainArea.removeFromRight(startX + colWidth).removeFromLeft(colWidth);
+
     leftHandLabel.setBounds(leftCol.removeFromTop(30));
     rightHandLabel.setBounds(rightCol.removeFromTop(30));
 
     auto stackRow = [](juce::Rectangle<int>& area, juce::Component& c) {
-        c.setBounds(area.removeFromTop(25));
-        area.removeFromTop(5);
+        c.setBounds(area.removeFromTop(22)); // Reduced height slightly
+        area.removeFromTop(4);               // Small gap
         };
 
+    // Left hand rows
     stackRow(leftCol, leftXRow);
     stackRow(leftCol, leftYRow);
     stackRow(leftCol, leftZRow);
     stackRow(leftCol, leftWristRow);
     stackRow(leftCol, leftGrabRow);
     stackRow(leftCol, leftPinchRow);
-    leftCol.removeFromTop(10); // Gap
+    leftCol.removeFromTop(10); // Section Gap
     stackRow(leftCol, leftThumbRow);
     stackRow(leftCol, leftIndexRow);
     stackRow(leftCol, leftMiddleRow);
     stackRow(leftCol, leftRingRow);
     stackRow(leftCol, leftPinkyRow);
 
+    // Right hand rows
     stackRow(rightCol, rightXRow);
     stackRow(rightCol, rightYRow);
     stackRow(rightCol, rightZRow);
     stackRow(rightCol, rightWristRow);
     stackRow(rightCol, rightGrabRow);
     stackRow(rightCol, rightPinchRow);
-    rightCol.removeFromTop(10); // Gap
+    rightCol.removeFromTop(10); // Section Gap
     stackRow(rightCol, rightThumbRow);
     stackRow(rightCol, rightIndexRow);
     stackRow(rightCol, rightMiddleRow);
     stackRow(rightCol, rightRingRow);
     stackRow(rightCol, rightPinkyRow);
 
-    // Only midi mode
     bool isMidi = (audioProcessor.currentOutputMode == OutputMode::MIDI_Only);
     instrumentSelector.setVisible(isMidi);
     instrumentLabel.setVisible(isMidi);
 
     if (isMidi) {
-        instrumentSelector.setBounds(bottomArea.removeFromTop(30).reduced(80, 0));
-        bottomArea.removeFromTop(10); 
+        instrumentSelector.setBounds(mainArea.getCentreX() - 100, mainArea.getBottom() - 40, 200, 25);
     }
 
-    // Sliders
-    sensitivityControl.setBounds(bottomArea.removeFromTop(40));
-    bottomArea.removeFromTop(5);
-    minHeightControl.setBounds(bottomArea.removeFromTop(40));
-    bottomArea.removeFromTop(5);
-    maxHeightControl.setBounds(bottomArea.removeFromTop(40));
+    int sliderWidth = bottomArea.getWidth() / 3;
 
-    closeButton.setBounds(getLocalBounds().getCentreX() - 50, getHeight() - 40, 100, 30);
+    sensitivityControl.setBounds(bottomArea.removeFromLeft(sliderWidth).reduced(10, 0));
+    minHeightControl.setBounds(bottomArea.removeFromLeft(sliderWidth).reduced(10, 0));
+    maxHeightControl.setBounds(bottomArea.removeFromLeft(sliderWidth).reduced(10, 0));
+
+    closeButton.setBounds(getLocalBounds().getCentreX() - 50, getHeight() - 30, 100, 25);
 }
