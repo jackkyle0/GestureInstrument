@@ -4,15 +4,86 @@
 #include "../MIDI/GestureTarget.h"
 #include "../Helpers/ScaleQuantiser.h" 
 
-class OscManager
+class OscManager : public juce::OSCReceiver::ListenerWithOSCAddress<juce::OSCReceiver::RealtimeCallback>
 {
 public:
     OscManager() {}
-    ~OscManager() {}
 
-    void connect(const juce::String& targetIP, int targetPort) {
+    ~OscManager() {
+        receiver.removeListener(this);
+        receiver.disconnect();
+    }
+
+    std::atomic<float> currentAIStyle{ 0.0f };
+    std::atomic<float> currentAIConfidence{ 0.0f }; 
+
+    void connectToReceiver(int port) {
+        if (receiver.connect(port)) {
+            receiver.addListener(this, "/ai/style");
+            receiver.addListener(this, "/ai/confidence"); 
+        }
+    }
+
+    void oscMessageReceived(const juce::OSCMessage& message) override {
+        if (message.size() == 1 && message[0].isFloat32()) {
+            auto address = message.getAddressPattern().toString();
+
+            if (address == "/ai/style") {
+                currentAIStyle.store(message[0].getFloat32());
+            }
+            else if (address == "/ai/confidence") {
+                currentAIConfidence.store(message[0].getFloat32());
+            }
+        }
+    }
+
+    void connectSender(const juce::String& targetIP, int targetPort) {
         sender.connect(targetIP, targetPort);
     }
+
+    void sendRawData(const HandData& left, const HandData& right) {
+        juce::OSCMessage msg("/gesture/raw");
+        auto addH = [&](const HandData& h) {
+            if (h.isPresent) {
+                msg.addFloat32(h.currentHandPositionX);
+                msg.addFloat32(h.currentHandPositionY);
+                msg.addFloat32(h.currentHandPositionZ);
+                msg.addFloat32(h.grabStrength);
+            }
+            else {
+                msg.addFloat32(0.0f); msg.addFloat32(0.0f); msg.addFloat32(0.0f); msg.addFloat32(0.0f);
+            }
+            };
+        addH(left);
+        addH(right);
+        sender.send(msg);
+    }
+    void sendMidiData(const juce::MidiBuffer& buffer) {
+        for (const auto metadata : buffer) {
+            auto msg = metadata.getMessage();
+            if (msg.isNoteOn()) {
+                juce::OSCMessage m("/midi/note");
+                m.addInt32(1);
+                m.addInt32(msg.getNoteNumber());
+                m.addInt32(msg.getVelocity());
+                sender.send(m);
+            }
+            else if (msg.isNoteOff()) {
+                juce::OSCMessage m("/midi/note");
+                m.addInt32(0);
+                m.addInt32(msg.getNoteNumber());
+                m.addInt32(0);
+                sender.send(m);
+            }
+            else if (msg.isController()) {
+                juce::OSCMessage m("/midi/cc");
+                m.addInt32(msg.getControllerNumber());
+                m.addInt32(msg.getControllerValue());
+                sender.send(m);
+            }
+        }
+    }
+
 
     void processHandData(
         const HandData& left, const HandData& right,
@@ -36,18 +107,12 @@ public:
         float rightX = calculateX(right, sensitivity);
         float rightY = calculateY(right, minH, maxH);
 
-        float leftGrab = left.isPresent ? left.grabStrength : 0.0f;
-        float leftPinch = left.isPresent ? left.pinchStrength : 0.0f;
-        float rightGrab = right.isPresent ? right.grabStrength : 0.0f;
-        float rightPinch = right.isPresent ? right.pinchStrength : 0.0f;
-
         // Left hand
         if (left.isPresent) {
             routeMessage(leftXTarget, leftX, "left", rootNote, scaleType, octaveRange);
             routeMessage(leftYTarget, leftY, "left", rootNote, scaleType, octaveRange);
-            routeMessage(leftGrabTarget, leftGrab, "left", rootNote, scaleType, octaveRange);
-            routeMessage(leftPinchTarget, leftPinch, "left", rootNote, scaleType, octaveRange);
-
+            routeMessage(leftGrabTarget, left.grabStrength, "left", rootNote, scaleType, octaveRange);
+            routeMessage(leftPinchTarget, left.pinchStrength, "left", rootNote, scaleType, octaveRange);
             processFingers(left, "left", minH, maxH, rootNote, scaleType, octaveRange, lThumb, lIndex, lMiddle, lRing, lPinky);
         }
 
@@ -55,63 +120,45 @@ public:
         if (right.isPresent) {
             routeMessage(rightXTarget, rightX, "right", rootNote, scaleType, octaveRange);
             routeMessage(rightYTarget, rightY, "right", rootNote, scaleType, octaveRange);
-            routeMessage(rightGrabTarget, rightGrab, "right", rootNote, scaleType, octaveRange);
-            routeMessage(rightPinchTarget, rightPinch, "right", rootNote, scaleType, octaveRange);
-
+            routeMessage(rightGrabTarget, right.grabStrength, "right", rootNote, scaleType, octaveRange);
+            routeMessage(rightPinchTarget, right.pinchStrength, "right", rootNote, scaleType, octaveRange);
             processFingers(right, "right", minH, maxH, rootNote, scaleType, octaveRange, rThumb, rIndex, rMiddle, rRing, rPinky);
         }
     }
 
 private:
     juce::OSCSender sender;
+    juce::OSCReceiver receiver;
     ScaleQuantiser quantiser;
 
     void routeMessage(GestureTarget target, float val, juce::String handPrefix, int root, int scale, int octaveRange) {
         if (target == GestureTarget::None) return;
-
         juce::String paramName;
-
         switch (target) {
-        case GestureTarget::Volume:     paramName = "volume"; break;
         case GestureTarget::Pitch:      paramName = "pitch"; break;
         case GestureTarget::NoteTrigger:paramName = "note"; break;
+        case GestureTarget::Volume:     paramName = "volume"; break;
         case GestureTarget::Modulation: paramName = "mod"; break;
-        case GestureTarget::Expression: paramName = "expr"; break;
-        case GestureTarget::Breath:     paramName = "breath"; break;
-
         case GestureTarget::Cutoff:     paramName = "cutoff"; break;
         case GestureTarget::Resonance:  paramName = "res"; break;
+        case GestureTarget::Vibrato:    paramName = "vib"; break;
+        case GestureTarget::Pan:        paramName = "pan"; break;
+        case GestureTarget::Expression: paramName = "expr"; break;
+        case GestureTarget::Reverb:     paramName = "reverb"; break;
         case GestureTarget::Attack:     paramName = "attack"; break;
         case GestureTarget::Release:    paramName = "release"; break;
-        case GestureTarget::Vibrato:    paramName = "vib"; break;
-
-        case GestureTarget::Pan:        paramName = "pan"; break;
-        case GestureTarget::Reverb:     paramName = "reverb"; break;
         case GestureTarget::Chorus:     paramName = "chorus"; break;
-
         case GestureTarget::Sustain:    paramName = "sustain"; break;
         case GestureTarget::Portamento: paramName = "portamento"; break;
-
-        case GestureTarget::Macro1:     paramName = "macro1"; break;
-        case GestureTarget::Macro2:     paramName = "macro2"; break;
-        case GestureTarget::Macro3:     paramName = "macro3"; break;
-        case GestureTarget::Macro4:     paramName = "macro4"; break;
-
-        default: return;
+        default:                        paramName = "param"; break;
         }
 
         juce::String address = "/" + handPrefix + "/" + paramName;
 
         if (target == GestureTarget::Pitch) {
             float rangeInSemitones = (float)(octaveRange * 12);
-            float minNote = 48.0f;
-            float maxNote = 48.0f + rangeInSemitones;
-
-            float noteInRange = juce::jmap(val, 0.0f, 1.0f, minNote, maxNote);
-            float quantiserInput = noteInRange / 127.0f;
-
-            int noteNumber = quantiser.getQuantisedNote(quantiserInput, root, scale);
-
+            float noteInRange = juce::jmap(val, 0.0f, 1.0f, 48.0f, 48.0f + rangeInSemitones);
+            int noteNumber = quantiser.getQuantisedNote(noteInRange / 127.0f, root, scale);
             sender.send(address, (float)noteNumber);
         }
         else {
@@ -120,10 +167,8 @@ private:
     }
 
     void processFingers(const HandData& h, juce::String handPrefix, float minH, float maxH, int root, int scale, int octaveRange,
-        GestureTarget tThumb, GestureTarget tIndex, GestureTarget tMiddle, GestureTarget tRing, GestureTarget tPinky)
-    {
+        GestureTarget tThumb, GestureTarget tIndex, GestureTarget tMiddle, GestureTarget tRing, GestureTarget tPinky) {
         auto getF = [&](int i) { return juce::jlimit(0.0f, 1.0f, juce::jmap(h.fingers[i].tipY, minH, maxH, 0.0f, 1.0f)); };
-
         routeMessage(tThumb, getF(0), handPrefix, root, scale, octaveRange);
         routeMessage(tIndex, getF(1), handPrefix, root, scale, octaveRange);
         routeMessage(tMiddle, getF(2), handPrefix, root, scale, octaveRange);

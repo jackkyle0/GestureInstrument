@@ -47,7 +47,7 @@ public:
     void setStateInformation(const void* data, int sizeInBytes) override;
 
     void updateOscSettings(juce::String newIp, int newPort) {
-        oscManager.connect(newIp, newPort);
+        oscManager.connectSender(newIp, newPort);
     }
 
     int octaveRange = 2;
@@ -64,6 +64,8 @@ public:
 
     int currentInstrument = 90;
     bool instrumentChanged = true;
+    int currentScale = 1; 
+    int targetScale = 1;
 
     // MAPPINGS
     GestureTarget leftXTarget = GestureTarget::None;

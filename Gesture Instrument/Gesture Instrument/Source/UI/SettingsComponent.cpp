@@ -10,26 +10,26 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
 
     auto getTargetFromId = [](int id) -> GestureTarget {
         switch (id) {
-            // Essentials
+        // Essentials
         case 1: return GestureTarget::Volume;
         case 2: return GestureTarget::Pitch;
         case 13: return GestureTarget::NoteTrigger;
         case 3: return GestureTarget::Modulation;
         case 4: return GestureTarget::Expression;
 
-            // Shaping
+        // Shaping
         case 5: return GestureTarget::Cutoff;
         case 6: return GestureTarget::Resonance;
         case 10: return GestureTarget::Vibrato;
 
-            // Spatial
+        // Spatial
         case 7: return GestureTarget::Pan;
         case 8: return GestureTarget::Reverb;
 
-            // Switches
+        // Switches
         case 9: return GestureTarget::Sustain;
 
-            // Macros
+        // Macros
         case 11: return GestureTarget::Macro1;
         case 12: return GestureTarget::Macro2;
 

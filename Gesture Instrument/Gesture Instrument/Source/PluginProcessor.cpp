@@ -13,7 +13,7 @@ GestureInstrumentAudioProcessor::GestureInstrumentAudioProcessor()
                        )
 #endif
 {
-    oscManager.connect("127.0.0.1", 9000);
+    
 }
     
 GestureInstrumentAudioProcessor::~GestureInstrumentAudioProcessor()
@@ -57,6 +57,8 @@ void GestureInstrumentAudioProcessor::changeProgramName (int index, const juce::
 
 //==============================================================================
 void GestureInstrumentAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock){
+    oscManager.connectSender("127.0.0.1", 9000);
+    oscManager.connectToReceiver(9001);
 }
 void GestureInstrumentAudioProcessor::releaseResources(){
 }
@@ -92,6 +94,22 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
     buffer.clear();
     midiMessages.clear();
 
+    float aiStyle = oscManager.currentAIStyle.load();
+    float aiConf = oscManager.currentAIConfidence.load();
+
+
+    if (aiConf >80.0f) 
+    {
+        if (aiStyle > 0.5f) {
+            targetScale = 0; // Aggressive/Chromatic
+        } else {
+            targetScale = 1; // Gentle/Major
+        }
+        
+        if (currentScale != targetScale) {
+            currentScale = targetScale;
+        }
+    }
     if (instrumentChanged) {
         midiManager.sendProgramChange(midiMessages, currentInstrument);
         instrumentChanged = false; // Only send once
@@ -100,6 +118,8 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
     leapService.pollHandData(leftHand, rightHand, isSensorConnected);
 
    
+    oscManager.sendRawData(leftHand, rightHand);
+    oscManager.sendMidiData(midiMessages);
     // OSC
     if (currentOutputMode == OutputMode::OSC_Only) {
         oscManager.processHandData(leftHand, rightHand,
@@ -123,7 +143,7 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
 
             rightXTarget, rightYTarget, rightZTarget, rightRollTarget, rightGrabTarget, rightPinchTarget,
             rightThumbTarget, rightIndexTarget, rightMiddleTarget, rightRingTarget, rightPinkyTarget,
-            rootNote, scaleType, octaveRange
+            rootNote, currentScale, octaveRange
         );
     }
 }
