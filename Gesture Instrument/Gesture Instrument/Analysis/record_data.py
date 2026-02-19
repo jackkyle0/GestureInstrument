@@ -6,7 +6,7 @@ import time
 import os
 import datetime
 
-USER_ID = "User01"
+USER_ID = "User06"
 SAVE_PATH = f"./Recordings/{USER_ID}/"
 
 SESSIONS = [
@@ -70,6 +70,8 @@ class DataRecorder:
 recorder = DataRecorder()
 dispatcher = Dispatcher()
 dispatcher.map("/gesture/raw", recorder.handle_osc)
+
+
 
 def run_server():
     server = osc_server.ThreadingOSCUDPServer(("127.0.0.1", 9000), dispatcher)
