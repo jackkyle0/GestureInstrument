@@ -94,6 +94,8 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
     buffer.clear();
     midiMessages.clear();
 
+ 
+
     float aiStyle = oscManager.currentAIStyle.load();
     float aiConf = oscManager.currentAIConfidence.load();
 
@@ -117,6 +119,10 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
 
     leapService.pollHandData(leftHand, rightHand, isSensorConnected);
 
+    // 2. AUDIO KILL SWITCH (Stops MIDI/OSC output if editing or calibrating)
+    if (muteOutput.load()) {
+        return;
+    }
    
     oscManager.sendRawData(leftHand, rightHand);
     oscManager.sendMidiData(midiMessages);
@@ -137,7 +143,11 @@ void GestureInstrumentAudioProcessor::processBlock(juce::AudioBuffer<float>& buf
     if (currentOutputMode == OutputMode::MIDI_Only) {
         midiManager.processHandData(
             midiMessages, leftHand, rightHand,
-            sensitivityLevel, minHeightThreshold, maxHeightThreshold,
+            sensitivityLevel,
+            minWidthThreshold, maxWidthThreshold,     // Added X bounds
+            minHeightThreshold, maxHeightThreshold,   // Y bounds
+            minDepthThreshold, maxDepthThreshold,     // Added Z bounds
+
             leftXTarget, leftYTarget, leftZTarget, leftRollTarget, leftGrabTarget, leftPinchTarget,
             leftThumbTarget, leftIndexTarget, leftMiddleTarget, leftRingTarget, leftPinkyTarget,
 

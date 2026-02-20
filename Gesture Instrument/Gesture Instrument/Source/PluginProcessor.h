@@ -100,14 +100,25 @@ public:
 
     float sensitivityLevel = 1.0f;
 
-    float minWidthThreshold = 1.0f;
-    float maxWidthThreshold = 350.0f;
+    // Centered physical defaults
+    float minWidthThreshold = -200.0f;
+    float maxWidthThreshold = 200.0f;
 
-    float minHeightThreshold = 50.0f;
-    float maxHeightThreshold = 400.0f;
+    float minHeightThreshold = 150.0f; // Normal floating hand height
+    float maxHeightThreshold = 450.0f;
 
     float minDepthThreshold = -150.0f;
     float maxDepthThreshold = 150.0f;
+
+
+    // Add a state to track if we are currently "Learning"
+    bool isCalibrating = false;
+    float tempMinY = 1000.0f, tempMaxY = 0.0f;
+
+    // A value between 0.0 and 1.0 to drive a progress bar in the UI
+    float calibrationProgress = 0.0f;
+
+    std::atomic<bool> muteOutput { false };
 
 private:
     LeapService leapService;

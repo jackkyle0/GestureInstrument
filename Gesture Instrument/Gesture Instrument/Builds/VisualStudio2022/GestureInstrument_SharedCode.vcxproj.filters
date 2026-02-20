@@ -703,6 +703,9 @@
     <ClCompile Include="..\..\Source\Helpers\LeapService.cpp">
       <Filter>GestureInstrument\Source\Helpers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\UI\HUDComponents.cpp">
+      <Filter>GestureInstrument\Source\UI</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\UI\SettingsComponent.cpp">
       <Filter>GestureInstrument\Source\UI</Filter>
     </ClCompile>
@@ -3705,7 +3708,13 @@
     <ClInclude Include="..\..\Source\UI\GuiComponents.h">
       <Filter>GestureInstrument\Source\UI</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\UI\HUDComponents.h">
+      <Filter>GestureInstrument\Source\UI</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\UI\SettingsComponent.h">
+      <Filter>GestureInstrument\Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\UI\VirtualCursor.h">
       <Filter>GestureInstrument\Source\UI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\MIDI\GestureTarget.h">
