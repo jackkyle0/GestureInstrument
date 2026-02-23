@@ -87,5 +87,5 @@ def handle_data(addr, *args):
 dispatcher = Dispatcher()
 dispatcher.map("/gesture/raw", handle_data)
 server = osc_server.ThreadingOSCUDPServer(("127.0.0.1", OSC_IN), dispatcher)
-sys.stdout.write(f"🚀 AI ACTIVE (Port {OSC_IN})...\n")
+sys.stdout.write(f"ACTIVE (Port {OSC_IN})...\n")
 server.serve_forever()
