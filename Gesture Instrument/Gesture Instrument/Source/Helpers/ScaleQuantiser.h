@@ -2,48 +2,46 @@
 #include <JuceHeader.h>
 #include <vector>
 
-class ScaleQuantiser
-{
+class ScaleQuantiser {
 public:
     ScaleQuantiser() {}
 
-    int getQuantisedNote(float value, int rootNote, int scaleType)
-    {
+    int getQuantisedNote(float value, int rootNote, int scaleType) {
         int rawNote = (int)(value * 127.0f);
-
         std::vector<int> intervals;
 
         switch (scaleType) {
-        case 1: intervals = { 0, 2, 4, 5, 7, 9, 11 }; break;       
-        case 2: intervals = { 0, 2, 3, 5, 7, 8, 10 }; break;      
-        case 3: intervals = { 0, 2, 4, 7, 9 }; break;              
-        default: return rawNote; // Chromatic
+        case 1: intervals = { 0, 2, 4, 5, 7, 9, 11 }; break;
+        case 2: intervals = { 0, 2, 3, 5, 7, 8, 10 }; break;
+        case 3: intervals = { 0, 2, 4, 7, 9 }; break;
+        default: return rawNote;
         }
 
         return snapToScale(rawNote, rootNote, intervals);
     }
 
 private:
-    int snapToScale(int note, int root, const std::vector<int>& intervals)
-    {
+    int snapToScale(int note, int rootNote, const std::vector<int>& intervals) {
         int octave = note / 12;
         int degree = note % 12;
 
-        int closest = -1;
-        int minDist = 100;
+        int closestDegree = -1;
+        int minimumDistance = 100;
 
         for (int interval : intervals) {
-            int target = (root + interval) % 12;
-            int dist = std::abs(degree - target);
+            int targetDegree = (rootNote + interval) % 12;
+            int distance = std::abs(degree - targetDegree);
 
-            if (dist > 6) dist = 12 - dist;
+            if (distance > 6) {
+                distance = 12 - distance;
+            }
 
-            if (dist < minDist) {
-                minDist = dist;
-                closest = target;
+            if (distance < minimumDistance) {
+                minimumDistance = distance;
+                closestDegree = targetDegree;
             }
         }
 
-        return (octave * 12) + closest;
+        return (octave * 12) + closestDegree;
     }
 };
