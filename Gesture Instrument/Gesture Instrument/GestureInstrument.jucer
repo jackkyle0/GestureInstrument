@@ -9,6 +9,9 @@
         <FILE id="SiC2iO" name="HandData.h" compile="0" resource="0" file="Source/Helpers/HandData.h"/>
         <FILE id="ioJAFr" name="LeapService.cpp" compile="1" resource="0" file="Source/Helpers/LeapService.cpp"/>
         <FILE id="jzuoYN" name="LeapService.h" compile="0" resource="0" file="Source/Helpers/LeapService.h"/>
+        <FILE id="bmAVcp" name="LeapThread.h" compile="0" resource="0" file="Source/Helpers/LeapThread.h"/>
+        <FILE id="SHS6Yx" name="MusicalRangeMode.h" compile="0" resource="0"
+              file="Source/Helpers/MusicalRangeMode.h"/>
         <FILE id="QfyxXS" name="ScaleQuantiser.h" compile="0" resource="0"
               file="Source/Helpers/ScaleQuantiser.h"/>
       </GROUP>

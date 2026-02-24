@@ -4,8 +4,7 @@
 #include "LeapC.h"
 #include "HandData.h"
 
-class LeapService 
-{
+class LeapService {
 public:
     LeapService();
     ~LeapService();
@@ -15,6 +14,5 @@ public:
 private:
     LEAP_CONNECTION connectionHandle;
 
-    void convertLeapEventToHandData(const LEAP_TRACKING_EVENT* event, HandData& left, HandData& right);
-
+    void convertLeapEventToHandData(const LEAP_TRACKING_EVENT* event, HandData& leftHand, HandData& rightHand);
 };

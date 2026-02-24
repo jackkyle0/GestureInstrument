@@ -6,14 +6,15 @@
 #include "OSC/OscManager.h"
 #include "MIDI/MidiManager.h"
 #include "MIDI/GestureTarget.h"
+#include "Helpers/MusicalRangeMode.h" 
+#include "Helpers/LeapThread.h"
 
 enum class OutputMode {
     OSC_Only,
     MIDI_Only
 };
 
-class GestureInstrumentAudioProcessor : public juce::AudioProcessor
-{
+class GestureInstrumentAudioProcessor : public juce::AudioProcessor {
 public:
     GestureInstrumentAudioProcessor();
     ~GestureInstrumentAudioProcessor() override;
@@ -50,31 +51,32 @@ public:
         oscManager.connectSender(newIp, newPort);
     }
 
-    int octaveRange = 2;
-
-    //==============================================================================
-
     OutputMode currentOutputMode = OutputMode::MIDI_Only;
+    std::atomic<bool> muteOutput{ false };
 
+    MusicalRangeMode currentRangeMode = MusicalRangeMode::OctaveRange;
+    int octaveRange = 2;
+    int startNote = 48; 
+    int endNote = 72;   
+
+    bool showNoteNames = false;
+    bool invertNoteTrigger = false;
     int rootNote = 0;
     int scaleType = 0;
+    int currentScale = 1;
+    int targetScale = 1;
+    int currentInstrument = 90;
+    bool instrumentChanged = true;
 
     int leftHandTargetCC = 1;
     int rightHandTargetCC = 7;
 
-    int currentInstrument = 90;
-    bool instrumentChanged = true;
-    int currentScale = 1; 
-    int targetScale = 1;
-
-    // MAPPINGS
     GestureTarget leftXTarget = GestureTarget::None;
     GestureTarget leftYTarget = GestureTarget::Pitch;
     GestureTarget leftZTarget = GestureTarget::None;
     GestureTarget leftRollTarget = GestureTarget::None;
     GestureTarget leftGrabTarget = GestureTarget::None;
     GestureTarget leftPinchTarget = GestureTarget::None;
-
     GestureTarget leftThumbTarget = GestureTarget::None;
     GestureTarget leftIndexTarget = GestureTarget::None;
     GestureTarget leftMiddleTarget = GestureTarget::None;
@@ -87,7 +89,6 @@ public:
     GestureTarget rightRollTarget = GestureTarget::None;
     GestureTarget rightGrabTarget = GestureTarget::None;
     GestureTarget rightPinchTarget = GestureTarget::Modulation;
-
     GestureTarget rightThumbTarget = GestureTarget::None;
     GestureTarget rightIndexTarget = GestureTarget::Vibrato;
     GestureTarget rightMiddleTarget = GestureTarget::None;
@@ -100,28 +101,20 @@ public:
 
     float sensitivityLevel = 1.0f;
 
-    // Centered physical defaults
     float minWidthThreshold = -200.0f;
     float maxWidthThreshold = 200.0f;
-
-    float minHeightThreshold = 150.0f; // Normal floating hand height
+    float minHeightThreshold = 150.0f;
     float maxHeightThreshold = 450.0f;
-
     float minDepthThreshold = -150.0f;
     float maxDepthThreshold = 150.0f;
 
-
-    // Add a state to track if we are currently "Learning"
     bool isCalibrating = false;
-    float tempMinY = 1000.0f, tempMaxY = 0.0f;
-
-    // A value between 0.0 and 1.0 to drive a progress bar in the UI
+    float tempMinY = 1000.0f;
+    float tempMaxY = 0.0f;
     float calibrationProgress = 0.0f;
 
-    std::atomic<bool> muteOutput { false };
-
 private:
-    LeapService leapService;
+    LeapThread leapThread; 
     OscManager oscManager;
     MidiManager midiManager;
 

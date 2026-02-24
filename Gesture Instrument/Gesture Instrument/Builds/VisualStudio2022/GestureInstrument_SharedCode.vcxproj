@@ -2955,6 +2955,8 @@
   <ItemGroup>
     <ClInclude Include="..\..\Source\Helpers\HandData.h"/>
     <ClInclude Include="..\..\Source\Helpers\LeapService.h"/>
+    <ClInclude Include="..\..\Source\Helpers\LeapThread.h"/>
+    <ClInclude Include="..\..\Source\Helpers\MusicalRangeMode.h"/>
     <ClInclude Include="..\..\Source\Helpers\ScaleQuantiser.h"/>
     <ClInclude Include="..\..\Source\UI\GuiComponents.h"/>
     <ClInclude Include="..\..\Source\UI\HUDComponents.h"/>
