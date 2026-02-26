@@ -11,6 +11,72 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
         audioProcessor.invertNoteTrigger = invertTriggerButton.getToggleState();
         };
 
+    // Mode selector updated ****
+    addAndMakeVisible(modeSelector);
+    modeSelector.addItem("OSC", 1);
+    modeSelector.addItem("MIDI", 2);
+    modeSelector.setSelectedId(audioProcessor.currentOutputMode == OutputMode::OSC_Only ? 1 : 2, juce::dontSendNotification);
+    modeSelector.onChange = [this] {
+        audioProcessor.currentOutputMode = (modeSelector.getSelectedId() == 1) ? OutputMode::OSC_Only : OutputMode::MIDI_Only;
+
+        bool isMidi = (audioProcessor.currentOutputMode == OutputMode::MIDI_Only);
+        instrumentSelector.setVisible(isMidi);
+        instrumentLabel.setVisible(isMidi);
+        };
+
+    addAndMakeVisible(modeLabel);
+    modeLabel.setText("Output Mode:", juce::dontSendNotification);
+    modeLabel.attachToComponent(&modeSelector, true);
+
+    // Virtual Mouse
+    addAndMakeVisible(enableGestureSwitchButton);
+    enableGestureSwitchButton.setToggleState(true, juce::dontSendNotification);
+    enableGestureSwitchButton.setColour(juce::ToggleButton::textColourId, juce::Colours::white);
+
+    addAndMakeVisible(gestureTimerSlider);
+    gestureTimerSlider.setRange(0.5, 5.0, 0.1);
+    gestureTimerSlider.setValue(1.5);
+    gestureTimerSlider.setTextValueSuffix("s");
+
+    addAndMakeVisible(gestureTypeSelector);
+    gestureTypeSelector.addItem("Both Fists", 1);
+    gestureTypeSelector.addItem("Right Fist", 2);
+    gestureTypeSelector.addItem("Left Fist", 3);
+    gestureTypeSelector.setSelectedId(1);
+
+    // Presetsss
+    addAndMakeVisible(savePresetButton);
+    savePresetButton.onClick = [this] {
+        fileChooser = std::make_unique<juce::FileChooser>("Save Preset", lastPresetDirectory, "*.xml");
+        fileChooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+            [this](const juce::FileChooser& fc) {
+                juce::File file = fc.getResult();
+                if (file != juce::File{}) {
+                    lastPresetDirectory = file.getParentDirectory();
+                    auto xml = audioProcessor.createPresetXml();
+                    xml->writeTo(file);
+                }
+            });
+        };
+
+    addAndMakeVisible(loadPresetButton);
+    loadPresetButton.onClick = [this] {
+        fileChooser = std::make_unique<juce::FileChooser>("Load Preset", lastPresetDirectory, "*.xml");
+        fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+            [this](const juce::FileChooser& fc) {
+                juce::File file = fc.getResult();
+                if (file.existsAsFile()) {
+                    lastPresetDirectory = file.getParentDirectory();
+                    auto xml = juce::XmlDocument::parse(file);
+                    audioProcessor.loadPresetXml(xml.get());
+
+                    modeSelector.setSelectedId(audioProcessor.currentOutputMode == OutputMode::OSC_Only ? 1 : 2, juce::dontSendNotification);
+
+                    if (onPresetLoaded) onPresetLoaded();
+                }
+            });
+        };
+
     auto getTargetFromId = [](int id) -> GestureTarget {
         switch (id) {
         case 1: return GestureTarget::Volume;
@@ -126,71 +192,102 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
 SettingsComponent::~SettingsComponent() {}
 
 void SettingsComponent::paint(juce::Graphics& g) {
-    g.fillAll(juce::Colours::black);
-    g.setColour(juce::Colours::grey);
-    g.drawVerticalLine(getWidth() / 2, 60, getHeight() - 150);
+    g.fillAll(juce::Colours::black); 
+
+    auto bounds = getLocalBounds().reduced(20);
+    bounds.removeFromTop(60);
+    bounds.removeFromBottom(60);
+
+    int spacing = 20;
+    int colW = (bounds.getWidth() - (spacing * 3)) / 4;
+
+    auto drawPanel = [&](juce::Rectangle<int> area, juce::String title) {
+        g.setColour(juce::Colour::fromFloatRGBA(0.1f, 0.1f, 0.12f, 1.0f)); 
+        g.fillRoundedRectangle(area.toFloat(), 10.0f);
+
+        g.setColour(juce::Colours::white.withAlpha(0.8f));
+        g.setFont(juce::Font(18.0f, juce::Font::bold));
+        g.drawText(title, area.withY(area.getY() + 15).withHeight(20), juce::Justification::centredTop);
+
+        g.setColour(juce::Colours::white.withAlpha(0.1f));
+        g.drawLine((float)area.getX() + 20, (float)area.getY() + 45, (float)area.getRight() - 20, (float)area.getY() + 45, 2.0f);
+        };
+
+    auto col1 = bounds.removeFromLeft(colW); bounds.removeFromLeft(spacing);
+    auto col2 = bounds.removeFromLeft(colW); bounds.removeFromLeft(spacing);
+    auto col3 = bounds.removeFromLeft(colW); bounds.removeFromLeft(spacing);
+    auto col4 = bounds.removeFromLeft(colW);
+
+    drawPanel(col1, "SYSTEM & PRESETS");
+    drawPanel(col2, "LEFT HAND");
+    drawPanel(col3, "RIGHT HAND");
+    drawPanel(col4, "MIDI & ADVANCED");
 }
 
 void SettingsComponent::resized() {
     auto bounds = getLocalBounds().reduced(20);
 
+    // Top Title
     titleLabel.setBounds(bounds.removeFromTop(40));
 
-    auto bottomArea = bounds.removeFromBottom(100);
-    auto mainArea = bounds;
+    auto bottomArea = bounds.removeFromBottom(60);
+    closeButton.setBounds(bottomArea.getCentreX() - 50, bottomArea.getY() + 15, 100, 30);
 
-    int colWidth = 320;
-    int colGap = 40;
-    int totalWidth = (colWidth * 2) + colGap;
-    int startX = (mainArea.getWidth() - totalWidth) / 2;
+    bounds.removeFromTop(20);
 
-    auto leftCol = mainArea.removeFromLeft(startX + colWidth).removeFromRight(colWidth);
-    auto rightCol = mainArea.removeFromRight(startX + colWidth).removeFromLeft(colWidth);
+    int spacing = 20;
+    int colW = (bounds.getWidth() - (spacing * 3)) / 4;
 
-    leftHandLabel.setBounds(leftCol.removeFromTop(30));
-    rightHandLabel.setBounds(rightCol.removeFromTop(30));
+    auto col1 = bounds.removeFromLeft(colW).reduced(20, 50); bounds.removeFromLeft(spacing);
+    auto col2 = bounds.removeFromLeft(colW).reduced(20, 50); bounds.removeFromLeft(spacing);
+    auto col3 = bounds.removeFromLeft(colW).reduced(20, 50); bounds.removeFromLeft(spacing);
+    auto col4 = bounds.removeFromLeft(colW).reduced(20, 50);
 
+    // Col 1
+    modeLabel.setBounds(col1.removeFromTop(25));
+    modeSelector.setBounds(col1.removeFromTop(25));
+    col1.removeFromTop(20);
+
+    savePresetButton.setBounds(col1.removeFromTop(25));
+    col1.removeFromTop(5);
+    loadPresetButton.setBounds(col1.removeFromTop(25));
+    col1.removeFromTop(20);
+
+    enableGestureSwitchButton.setBounds(col1.removeFromTop(25));
+    gestureTypeSelector.setBounds(col1.removeFromTop(25));
+    col1.removeFromTop(5);
+    gestureTimerSlider.setBounds(col1.removeFromTop(25));
+
+    // Col 2
+    leftHandLabel.setVisible(false); 
     auto stackRow = [](juce::Rectangle<int>& area, juce::Component& c) {
-        c.setBounds(area.removeFromTop(22));
-        area.removeFromTop(4);
+        c.setBounds(area.removeFromTop(24));
+        area.removeFromTop(6); 
         };
 
-    stackRow(leftCol, leftXRow);
-    stackRow(leftCol, leftYRow);
-    stackRow(leftCol, leftZRow);
-    stackRow(leftCol, leftWristRow);
-    stackRow(leftCol, leftGrabRow);
-    stackRow(leftCol, leftPinchRow);
-    leftCol.removeFromTop(10);
-    stackRow(leftCol, leftThumbRow);
-    stackRow(leftCol, leftIndexRow);
-    stackRow(leftCol, leftMiddleRow);
-    stackRow(leftCol, leftRingRow);
-    stackRow(leftCol, leftPinkyRow);
+    stackRow(col2, leftXRow); stackRow(col2, leftYRow); stackRow(col2, leftZRow);
+    stackRow(col2, leftWristRow); stackRow(col2, leftGrabRow); stackRow(col2, leftPinchRow);
+    col2.removeFromTop(10);
+    stackRow(col2, leftThumbRow); stackRow(col2, leftIndexRow); stackRow(col2, leftMiddleRow);
+    stackRow(col2, leftRingRow); stackRow(col2, leftPinkyRow);
 
-    stackRow(rightCol, rightXRow);
-    stackRow(rightCol, rightYRow);
-    stackRow(rightCol, rightZRow);
-    stackRow(rightCol, rightWristRow);
-    stackRow(rightCol, rightGrabRow);
-    stackRow(rightCol, rightPinchRow);
-    rightCol.removeFromTop(10);
-    stackRow(rightCol, rightThumbRow);
-    stackRow(rightCol, rightIndexRow);
-    stackRow(rightCol, rightMiddleRow);
-    stackRow(rightCol, rightRingRow);
-    stackRow(rightCol, rightPinkyRow);
+    // Col 3
+    rightHandLabel.setVisible(false); 
+    stackRow(col3, rightXRow); stackRow(col3, rightYRow); stackRow(col3, rightZRow);
+    stackRow(col3, rightWristRow); stackRow(col3, rightGrabRow); stackRow(col3, rightPinchRow);
+    col3.removeFromTop(10); 
+    stackRow(col3, rightThumbRow); stackRow(col3, rightIndexRow); stackRow(col3, rightMiddleRow);
+    stackRow(col3, rightRingRow); stackRow(col3, rightPinkyRow);
 
+    // Col 4
     bool isMidi = (audioProcessor.currentOutputMode == OutputMode::MIDI_Only);
-    instrumentSelector.setVisible(isMidi);
     instrumentLabel.setVisible(isMidi);
-
-
+    instrumentSelector.setVisible(isMidi);
 
     if (isMidi) {
-        instrumentSelector.setBounds(mainArea.getCentreX() - 250, mainArea.getBottom() - 40, 200, 25);
-        invertTriggerButton.setBounds(mainArea.getCentreX() + 10, mainArea.getBottom() - 40, 250, 25);
+        instrumentLabel.setBounds(col4.removeFromTop(25));
+        instrumentSelector.setBounds(col4.removeFromTop(25));
+        col4.removeFromTop(20); 
+        invertTriggerButton.setBounds(col4.removeFromTop(25));
     }
-
-    closeButton.setBounds(getLocalBounds().getCentreX() - 50, getHeight() - 30, 100, 25);
 }

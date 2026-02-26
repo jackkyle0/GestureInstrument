@@ -14,6 +14,12 @@ public:
 
     juce::TextButton closeButton{ "Close" };
 
+    juce::ToggleButton enableGestureSwitchButton{ "Enable Gesture to Virtual Mouse" };
+    juce::Slider gestureTimerSlider{ juce::Slider::LinearHorizontal, juce::Slider::TextBoxLeft };
+    juce::ComboBox gestureTypeSelector;
+
+    std::function<void()> onPresetLoaded;
+
 private:
     GestureInstrumentAudioProcessor& audioProcessor;
 
@@ -21,7 +27,7 @@ private:
     juce::Label leftHandLabel{ "Left Hand", "Left Hand" };
     juce::Label rightHandLabel{ "Right Hand", "Right Hand" };
 
-    MappingRow leftXRow{ "X Axis (Side-to-side)", 99 };
+    MappingRow leftXRow{ "X Axis n/(Side-to-side)", 99 };
     MappingRow leftYRow{ "Y Axis (Height)", 2 };
     MappingRow leftZRow{ "Z Axis (Depth)", 99 };
     MappingRow leftWristRow{ "Wrist Rotation", 99 };
@@ -50,6 +56,14 @@ private:
     juce::ComboBox instrumentSelector;
     juce::Label instrumentLabel;
     juce::ToggleButton invertTriggerButton{ "Invert Note Off (Selected Gesture to Mute)" };
+
+    juce::ComboBox modeSelector;
+    juce::Label modeLabel;
+
+    juce::TextButton savePresetButton{ "Save Preset" };
+    juce::TextButton loadPresetButton{ "Load Preset" };
+    std::unique_ptr<juce::FileChooser> fileChooser;
+    juce::File lastPresetDirectory{ juce::File::getSpecialLocation(juce::File::userDocumentsDirectory) };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsComponent)
 };
