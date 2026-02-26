@@ -131,6 +131,35 @@ public:
             rThumb, rIndex, rMiddle, rRing, rPinky);
     }
 
+    void sendCC(juce::MidiBuffer& midiMessages, int channel, GestureTarget target, float axisValue) {
+        if (axisValue < 0.0f) return;
+        int controllerNumber = -1;
+        int value7bit = (int)(axisValue * 127.0f);
+        bool isSwitch = false;
+
+        switch (target) {
+        case GestureTarget::Volume:      controllerNumber = 7; break;
+        case GestureTarget::Modulation:  controllerNumber = 1; break;
+        case GestureTarget::Expression:  controllerNumber = 11; break;
+        case GestureTarget::Breath:      controllerNumber = 2; break;
+        case GestureTarget::Cutoff:      controllerNumber = 74; break;
+        case GestureTarget::Resonance:   controllerNumber = 71; break;
+        case GestureTarget::Attack:      controllerNumber = 73; break;
+        case GestureTarget::Release:     controllerNumber = 72; break;
+        case GestureTarget::Vibrato:     controllerNumber = 76; break;
+        case GestureTarget::Pan:         controllerNumber = 10; break;
+        case GestureTarget::Reverb:      controllerNumber = 91; break;
+        case GestureTarget::Chorus:      controllerNumber = 93; break;
+        case GestureTarget::Sustain:     controllerNumber = 64; isSwitch = true; break;
+        case GestureTarget::Portamento:  controllerNumber = 65; isSwitch = true; break;
+        default: return;
+        }
+
+        if (isSwitch) value7bit = (axisValue > 0.5f) ? 127 : 0;
+        midiMessages.addEvent(juce::MidiMessage::controllerEvent(channel, controllerNumber, value7bit), 0);
+    }
+
+
 private:
     struct HandNoteState {
         int lastNote = -1;
@@ -161,7 +190,7 @@ private:
         else {
             minNote = (float)startNote;
             maxNote = (float)endNote;
-            if (minNote > maxNote) std::swap(minNote, maxNote); 
+            if (minNote > maxNote) std::swap(minNote, maxNote);
         }
 
         int targetNote = state.lastNote;
@@ -202,32 +231,6 @@ private:
             state.isNoteOn = false;
         }
     }
-
-    void sendCC(juce::MidiBuffer& midiMessages, int channel, GestureTarget target, float axisValue) {
-        if (axisValue < 0.0f) return;
-        int controllerNumber = -1;
-        int value7bit = (int)(axisValue * 127.0f);
-        bool isSwitch = false;
-
-        switch (target) {
-        case GestureTarget::Volume:      controllerNumber = 7; break;
-        case GestureTarget::Modulation:  controllerNumber = 1; break;
-        case GestureTarget::Expression:  controllerNumber = 11; break;
-        case GestureTarget::Breath:      controllerNumber = 2; break;
-        case GestureTarget::Cutoff:      controllerNumber = 74; break;
-        case GestureTarget::Resonance:   controllerNumber = 71; break;
-        case GestureTarget::Attack:      controllerNumber = 73; break;
-        case GestureTarget::Release:     controllerNumber = 72; break;
-        case GestureTarget::Vibrato:     controllerNumber = 76; break;
-        case GestureTarget::Pan:         controllerNumber = 10; break;
-        case GestureTarget::Reverb:      controllerNumber = 91; break;
-        case GestureTarget::Chorus:      controllerNumber = 93; break;
-        case GestureTarget::Sustain:     controllerNumber = 64; isSwitch = true; break;
-        case GestureTarget::Portamento:  controllerNumber = 65; isSwitch = true; break;
-        default: return;
-        }
-
-        if (isSwitch) value7bit = (axisValue > 0.5f) ? 127 : 0;
-        midiMessages.addEvent(juce::MidiMessage::controllerEvent(channel, controllerNumber, value7bit), 0);
-    }
 };
+
+   
