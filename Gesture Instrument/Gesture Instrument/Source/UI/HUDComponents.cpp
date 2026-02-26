@@ -8,7 +8,7 @@ HUDComponents::HUDComponents(GestureInstrumentAudioProcessor& p)
 
 void HUDComponents::paint(juce::Graphics& g) {
     int hudThick = 45;
-    int barHeight = 350;
+    int barHeight = 300;
     int margin = 10;
     int spacing = 15;
     int topY = 10;
@@ -28,7 +28,7 @@ void HUDComponents::paint(juce::Graphics& g) {
         lValX = normaise(audioProcessor.leftHand.currentHandPositionX, audioProcessor.minWidthThreshold, audioProcessor.maxWidthThreshold, sens);
         lValY = normaise(audioProcessor.leftHand.currentHandPositionY, audioProcessor.minHeightThreshold, audioProcessor.maxHeightThreshold, sens);
         lValZ = 1.0f - normaise(audioProcessor.leftHand.currentHandPositionZ, audioProcessor.minDepthThreshold, audioProcessor.maxDepthThreshold, sens);
-        lValRoll = juce::jlimit(0.0f, 1.0f, juce::jmap(audioProcessor.leftHand.currentWristRotation, -1.5f, 1.5f, 0.0f, 1.0f));
+        lValRoll = 1.0f - juce::jlimit(0.0f, 1.0f, juce::jmap(audioProcessor.leftHand.currentWristRotation, -0.6f, 0.6f, 0.0f, 1.0f));
     }
 
     float rValX = -1.0f, rValY = -1.0f, rValZ = -1.0f, rValRoll = -1.0f;
@@ -36,11 +36,11 @@ void HUDComponents::paint(juce::Graphics& g) {
         rValX = normaise(audioProcessor.rightHand.currentHandPositionX, audioProcessor.minWidthThreshold, audioProcessor.maxWidthThreshold, sens);
         rValY = normaise(audioProcessor.rightHand.currentHandPositionY, audioProcessor.minHeightThreshold, audioProcessor.maxHeightThreshold, sens);
         rValZ = 1.0f - normaise(audioProcessor.rightHand.currentHandPositionZ, audioProcessor.minDepthThreshold, audioProcessor.maxDepthThreshold, sens);
-        rValRoll = juce::jlimit(0.0f, 1.0f, juce::jmap(audioProcessor.rightHand.currentWristRotation, -1.5f, 1.5f, 0.0f, 1.0f));
+        rValRoll = 1.0f - juce::jlimit(0.0f, 1.0f, juce::jmap(audioProcessor.rightHand.currentWristRotation, -0.6f, 0.6f, 0.0f, 1.0f));
     }
 
     // Draw left hand
-    juce::Rectangle<int> leftXRect(margin, topY, 400, hudThick);
+    juce::Rectangle<int> leftXRect(margin, topY, 300, hudThick);
     drawParameterHUD(g, leftXRect, audioProcessor.leftXTarget, lValX, false, "L-X", juce::Colours::cyan);
 
     juce::Rectangle<int> leftYRect(margin, bottomY, hudThick, barHeight);
@@ -53,7 +53,7 @@ void HUDComponents::paint(juce::Graphics& g) {
     drawDial(g, leftRollRect, audioProcessor.leftRollTarget, lValRoll, "L-ROLL", juce::Colours::cyan.brighter());
 
     // Draw right hand
-    juce::Rectangle<int> rightXRect(getWidth() - 400 - margin, topY, 400, hudThick);
+    juce::Rectangle<int> rightXRect(getWidth() - 300 - margin, topY, 400, hudThick);
     drawParameterHUD(g, rightXRect, audioProcessor.rightXTarget, rValX, false, "R-X", juce::Colours::magenta);
 
     juce::Rectangle<int> rightYRect(getWidth() - margin - hudThick, bottomY, hudThick, barHeight);
