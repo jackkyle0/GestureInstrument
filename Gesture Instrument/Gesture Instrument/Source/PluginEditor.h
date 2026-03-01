@@ -5,6 +5,7 @@
 #include "UI/SettingsComponent.h"
 #include "UI/HUDComponents.h"
 #include "UI/VirtualCursor.h"
+#include "UI/StaticDialsComponent.h"
 
 struct Point3D {
     float x, y, z;
@@ -22,6 +23,8 @@ public:
     void timerCallback() override;
     void comboBoxChanged(juce::ComboBox* box) override;
 
+
+
     class CalibrationOverlay : public juce::Component {
     public:
         void setProgress(float p);
@@ -30,8 +33,13 @@ public:
         float progress = 0.0f;
     };
 
+
+
 private:
     GestureInstrumentAudioProcessor& audioProcessor;
+
+    StaticDialsComponent staticDialsPage;
+    juce::TextButton staticDialsButton{ "Dials" };
 
     // Overlays
     juce::OpenGLContext openGLContext;
@@ -48,8 +56,6 @@ private:
     juce::Label connectionStatusLabel;
 
     // Selectors
-    juce::ComboBox modeSelector;
-    juce::Label modeLabel;
     juce::ComboBox rootSelector;
     juce::ComboBox scaleSelector;
     juce::Label scaleLabel;
@@ -61,6 +67,8 @@ private:
     juce::ComboBox endNoteSelector;
     juce::Label octaveLabel;
 
+
+
     // Sliders
     LabeledSlider xMinControl;
     LabeledSlider xMaxControl;
@@ -69,10 +77,8 @@ private:
     LabeledSlider zMinControl;
     LabeledSlider zMaxControl;
 
-    // Virtual mouse
-    juce::ToggleButton enableGestureSwitchButton{ "Enable Gesture Switch" };
-    juce::Slider gestureTimerSlider{ juce::Slider::LinearHorizontal, juce::Slider::TextBoxLeft };
-    juce::ComboBox gestureTypeSelector;
+
+ 
 
     bool isEditMode = false;
     float menuGestureTimer = 0.0f;
@@ -99,6 +105,8 @@ private:
     const float fov = 350.0f;
     const float camDist = 600.0f;
     juce::Point<float> centerScreen;
+    float currentStyle = 0.0f;
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GestureInstrumentAudioProcessorEditor)
 };

@@ -19,8 +19,8 @@ enum class GestureTarget {
     Reverb,
     Chorus,
     Sustain,
-    Portamento
-};
+    Portamento,
+    Waveform};
 
 static juce::String getTargetName(GestureTarget t) {
     switch (t) {
@@ -40,6 +40,7 @@ static juce::String getTargetName(GestureTarget t) {
     case GestureTarget::Chorus: return "Chorus";
     case GestureTarget::Sustain: return "Sustain";
     case GestureTarget::Portamento: return "Portamento";
+    case GestureTarget::Waveform: return "Waveform";
     default: return "None";
     }
 }
