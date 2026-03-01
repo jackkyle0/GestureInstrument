@@ -8,6 +8,7 @@
 #include "MIDI/GestureTarget.h"
 #include "Helpers/MusicalRangeMode.h" 
 #include "Helpers/LeapThread.h"
+#include "Helpers/BiometricSpatialTracker.h"
 
 enum class OutputMode {
     OSC_Only,
@@ -52,6 +53,7 @@ public:
     }
 
     OutputMode currentOutputMode = OutputMode::MIDI_Only;
+    bool isMpeEnabled = false; 
     std::atomic<bool> muteOutput{ false };
 
     MusicalRangeMode currentRangeMode = MusicalRangeMode::OctaveRange;
@@ -108,15 +110,46 @@ public:
     float minDepthThreshold = -150.0f;
     float maxDepthThreshold = 150.0f;
 
+    float staticVolume = 0.8f;
+    float staticPan = 0.5f;
+    float staticModulation = 0.0f;
+    float staticExpression = 1.0f;
+
+    float staticCutoff = 1.0f;
+    float staticResonance = 0.0f;
+    float staticAttack = 0.1f;
+    float staticRelease = 0.1f;
+
+    float staticReverb = 0.1f;
+    float staticChorus = 0.0f;
+    float staticVibrato = 0.0f;
+    float staticWaveform = 0.0f;
+    int waveformGestureSource = 0;
+
+    std::atomic<float> liveVolume{ -1.0f };
+    std::atomic<float> liveCutoff{ -1.0f };
+    std::atomic<float> liveResonance{ -1.0f };
+    std::atomic<float> liveReverb{ -1.0f };
+    std::atomic<float> liveWaveform{ -1.0f };
+
     bool isCalibrating = false;
     float tempMinY = 1000.0f;
     float tempMaxY = 0.0f;
     float calibrationProgress = 0.0f;
 
-private:
-    LeapThread leapThread; 
+    std::unique_ptr<juce::XmlElement> createPresetXml();
+    void loadPresetXml(juce::XmlElement* xml);
+
     OscManager oscManager;
     MidiManager midiManager;
+
+
+private:
+    LeapThread leapThread; 
+
+    BiometricSpatialTracker xTracker{ 72000, -350.0f, 350.0f, 150.0f };
+    BiometricSpatialTracker yTracker{ 72000, 50.0f, 500.0f, 100.0f };
+    BiometricSpatialTracker zTracker{ 72000, -225.0f, 225.0f, 100.0f };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GestureInstrumentAudioProcessor)
 };
