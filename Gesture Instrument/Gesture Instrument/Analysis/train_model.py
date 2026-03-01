@@ -58,7 +58,6 @@ for root, _, files in os.walk(DATA_ROOT):
                 all_data.append(processed)
 
 if not all_data:
-    print("No training data found. Run record_data.py first")
     print("No training data found.")
     exit()
 
