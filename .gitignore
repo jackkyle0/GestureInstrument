@@ -64,3 +64,8 @@ pip-log.txt
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Temporary ONNX export files
+gesture_model.onnx
+gesture_model.onnx.data
+gesture_model.pkl
