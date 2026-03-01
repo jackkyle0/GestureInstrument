@@ -31,6 +31,7 @@ struct MappingRow : public juce::Component {
         comboBox.addItem("Chorus", 14);
         comboBox.addItem("Sustain", 15);
         comboBox.addItem("Portamento", 16);
+        comboBox.addItem("Waveform", 17);
 
         comboBox.setSelectedId(defaultId, juce::dontSendNotification);
     }

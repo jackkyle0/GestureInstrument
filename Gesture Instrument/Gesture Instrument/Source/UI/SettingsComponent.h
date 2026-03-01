@@ -65,5 +65,7 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
     juce::File lastPresetDirectory{ juce::File::getSpecialLocation(juce::File::userDocumentsDirectory) };
 
+    juce::ToggleButton mpeButton{ "Enable MPE" };
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsComponent)
 };

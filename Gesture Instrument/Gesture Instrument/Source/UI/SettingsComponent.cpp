@@ -77,6 +77,28 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
             });
         };
 
+    addAndMakeVisible(mpeButton);
+    mpeButton.setToggleState(p.isMpeEnabled, juce::dontSendNotification);
+    mpeButton.setColour(juce::ToggleButton::textColourId, juce::Colours::white);
+
+    mpeButton.onClick = [this] {
+        audioProcessor.isMpeEnabled = mpeButton.getToggleState();
+
+        //// Disable dropdowns when MPE enabled
+        //bool useDropdowns = !audioProcessor.isMpeEnabled;
+        //leftThumbRow.setEnabled(useDropdowns);
+        //leftIndexRow.setEnabled(useDropdowns);
+        //leftMiddleRow.setEnabled(useDropdowns);
+        //leftRingRow.setEnabled(useDropdowns);
+        //leftPinkyRow.setEnabled(useDropdowns);
+
+        //rightThumbRow.setEnabled(useDropdowns);
+        //rightIndexRow.setEnabled(useDropdowns);
+        //rightMiddleRow.setEnabled(useDropdowns);
+        //rightRingRow.setEnabled(useDropdowns);
+        //rightPinkyRow.setEnabled(useDropdowns);
+        };
+
     auto getTargetFromId = [](int id) -> GestureTarget {
         switch (id) {
         case 1: return GestureTarget::Volume;
@@ -95,6 +117,7 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
         case 14: return GestureTarget::Chorus;
         case 15: return GestureTarget::Sustain;
         case 16: return GestureTarget::Portamento;
+        case 17: return GestureTarget::Waveform;
         case 99: return GestureTarget::None;
         default: return GestureTarget::None;
         }
@@ -119,6 +142,7 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
         case GestureTarget::Chorus: return 14;
         case GestureTarget::Sustain: return 15;
         case GestureTarget::Portamento: return 16;
+        case GestureTarget::Waveform: return 17;
         case GestureTarget::None: return 99;
         default: return 99;
         }
@@ -259,10 +283,10 @@ void SettingsComponent::resized() {
     gestureTimerSlider.setBounds(col1.removeFromTop(25));
 
     // Col 2
-    leftHandLabel.setVisible(false); 
+    leftHandLabel.setVisible(false);
     auto stackRow = [](juce::Rectangle<int>& area, juce::Component& c) {
         c.setBounds(area.removeFromTop(24));
-        area.removeFromTop(6); 
+        area.removeFromTop(6);
         };
 
     stackRow(col2, leftXRow); stackRow(col2, leftYRow); stackRow(col2, leftZRow);
@@ -272,10 +296,10 @@ void SettingsComponent::resized() {
     stackRow(col2, leftRingRow); stackRow(col2, leftPinkyRow);
 
     // Col 3
-    rightHandLabel.setVisible(false); 
+    rightHandLabel.setVisible(false);
     stackRow(col3, rightXRow); stackRow(col3, rightYRow); stackRow(col3, rightZRow);
     stackRow(col3, rightWristRow); stackRow(col3, rightGrabRow); stackRow(col3, rightPinchRow);
-    col3.removeFromTop(10); 
+    col3.removeFromTop(10);
     stackRow(col3, rightThumbRow); stackRow(col3, rightIndexRow); stackRow(col3, rightMiddleRow);
     stackRow(col3, rightRingRow); stackRow(col3, rightPinkyRow);
 
@@ -283,11 +307,16 @@ void SettingsComponent::resized() {
     bool isMidi = (audioProcessor.currentOutputMode == OutputMode::MIDI_Only);
     instrumentLabel.setVisible(isMidi);
     instrumentSelector.setVisible(isMidi);
+    mpeButton.setVisible(isMidi); 
 
     if (isMidi) {
         instrumentLabel.setBounds(col4.removeFromTop(25));
         instrumentSelector.setBounds(col4.removeFromTop(25));
+        col4.removeFromTop(20);
+
+        mpeButton.setBounds(col4.removeFromTop(25));
         col4.removeFromTop(20); 
+
         invertTriggerButton.setBounds(col4.removeFromTop(25));
     }
 }
