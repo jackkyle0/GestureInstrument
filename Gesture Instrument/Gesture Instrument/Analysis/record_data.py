@@ -6,7 +6,7 @@ import time
 import os
 import datetime
 
-USER_ID = "User06"
+USER_ID = "User07"
 SAVE_PATH = f"./Recordings/{USER_ID}/"
 
 SESSIONS = [
