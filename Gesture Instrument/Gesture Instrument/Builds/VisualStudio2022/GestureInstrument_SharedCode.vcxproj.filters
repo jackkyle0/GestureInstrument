@@ -2,6 +2,9 @@
 
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="GestureInstrument\Source\Resources">
+      <UniqueIdentifier>{CCCD8789-8085-DEB9-D8F6-8C9B55705192}</UniqueIdentifier>
+    </Filter>
     <Filter Include="GestureInstrument\Source\Helpers">
       <UniqueIdentifier>{2CD8051D-ED68-B846-C2E1-92A865E10B87}</UniqueIdentifier>
     </Filter>
@@ -3634,6 +3637,9 @@
     <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_osc\juce_osc.cpp">
       <Filter>JUCE Modules\juce_osc</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\BinaryData.cpp">
+      <Filter>JUCE Library Code</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_audio_basics.cpp">
       <Filter>JUCE Library Code</Filter>
     </ClCompile>
@@ -3696,6 +3702,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\Helpers\AdaptiveEngine.h">
+      <Filter>GestureInstrument\Source\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Helpers\BiometricSpatialTracker.h">
+      <Filter>GestureInstrument\Source\Helpers</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\Helpers\HandData.h">
       <Filter>GestureInstrument\Source\Helpers</Filter>
     </ClInclude>
@@ -3718,6 +3730,9 @@
       <Filter>GestureInstrument\Source\UI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\UI\SettingsComponent.h">
+      <Filter>GestureInstrument\Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\UI\StaticDialsComponent.h">
       <Filter>GestureInstrument\Source\UI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\UI\VirtualCursor.h">
@@ -7848,6 +7863,9 @@
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_osc\juce_osc.h">
       <Filter>JUCE Modules\juce_osc</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\BinaryData.h">
+      <Filter>JUCE Library Code</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\JuceLibraryCode\JuceHeader.h">
       <Filter>JUCE Library Code</Filter>
     </ClInclude>
@@ -7856,6 +7874,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Analysis\gesture_model_packaged.onnx">
+      <Filter>GestureInstrument\Source\Resources</Filter>
+    </None>
     <None Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_devices\native\oboe\src\common\README.md">
       <Filter>JUCE Modules\juce_audio_devices\native\oboe\src\common</Filter>
     </None>
