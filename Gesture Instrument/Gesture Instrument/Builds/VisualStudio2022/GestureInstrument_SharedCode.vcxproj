@@ -75,7 +75,7 @@
       <AssemblerListingLocation>$(IntDir)\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\</ObjectFileName>
       <ProgramDataBaseFileName>$(IntDir)\GestureInstrument.pdb</ProgramDataBaseFileName>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
@@ -153,6 +153,7 @@
     <ClCompile Include="..\..\Source\UI\SettingsComponent.cpp"/>
     <ClCompile Include="..\..\Source\PluginProcessor.cpp"/>
     <ClCompile Include="..\..\Source\PluginEditor.cpp"/>
+    <ClCompile Include="..\..\Unit Tests\SensorTests.cpp"/>
     <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -2968,11 +2969,13 @@
     <ClInclude Include="..\..\Source\UI\SettingsComponent.h"/>
     <ClInclude Include="..\..\Source\UI\StaticDialsComponent.h"/>
     <ClInclude Include="..\..\Source\UI\VirtualCursor.h"/>
+    <ClInclude Include="..\..\Source\UI\WaveformComponent.h"/>
     <ClInclude Include="..\..\Source\MIDI\GestureTarget.h"/>
     <ClInclude Include="..\..\Source\MIDI\MidiManager.h"/>
     <ClInclude Include="..\..\Source\OSC\OscManager.h"/>
     <ClInclude Include="..\..\Source\PluginProcessor.h"/>
     <ClInclude Include="..\..\Source\PluginEditor.h"/>
+    <ClInclude Include="..\..\Unit Tests\SensorTests.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\buffers\juce_AudioChannelSet.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h"/>

@@ -20,6 +20,9 @@
     <Filter Include="GestureInstrument\Source">
       <UniqueIdentifier>{21003203-449F-E7BC-A3DC-881B56AF955D}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GestureInstrument\Unit Tests">
+      <UniqueIdentifier>{F262C247-A05B-642E-7438-1BD13E3DE48B}</UniqueIdentifier>
+    </Filter>
     <Filter Include="GestureInstrument">
       <UniqueIdentifier>{EE05B9C0-2204-ECCF-0796-358875488604}</UniqueIdentifier>
     </Filter>
@@ -717,6 +720,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\PluginEditor.cpp">
       <Filter>GestureInstrument\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Unit Tests\SensorTests.cpp">
+      <Filter>GestureInstrument\Unit Tests</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.cpp">
       <Filter>JUCE Modules\juce_audio_basics\audio_play_head</Filter>
@@ -3738,6 +3744,9 @@
     <ClInclude Include="..\..\Source\UI\VirtualCursor.h">
       <Filter>GestureInstrument\Source\UI</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\UI\WaveformComponent.h">
+      <Filter>GestureInstrument\Source\UI</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\MIDI\GestureTarget.h">
       <Filter>GestureInstrument\Source\MIDI</Filter>
     </ClInclude>
@@ -3752,6 +3761,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\PluginEditor.h">
       <Filter>GestureInstrument\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Unit Tests\SensorTests.h">
+      <Filter>GestureInstrument\Unit Tests</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h">
       <Filter>JUCE Modules\juce_audio_basics\audio_play_head</Filter>
