@@ -140,6 +140,8 @@ public:
         else if (target == GestureTarget::Chorus) liveChorus.store(axisValue);
         else if (target == GestureTarget::Vibrato) liveVibrato.store(axisValue);
         else if (target == GestureTarget::Waveform) liveWaveform.store(axisValue);
+        else if (target == GestureTarget::Sustain) liveSustain.store(axisValue);
+        else if (target == GestureTarget::Portamento) livePortamento.store(axisValue);
 
         switch (target) {
         case GestureTarget::Volume:      controllerNumber = 7; break;
@@ -175,6 +177,11 @@ public:
     std::atomic<float> liveChorus{ -1.0f };
     std::atomic<float> liveVibrato{ -1.0f };
     std::atomic<float> liveWaveform{ -1.0f };
+    std::atomic<float> liveSustain{ -1.0f };
+
+    std::atomic<float> livePortamento{ -1.0f };
+
+
 
 private:
     struct HandNoteState {
