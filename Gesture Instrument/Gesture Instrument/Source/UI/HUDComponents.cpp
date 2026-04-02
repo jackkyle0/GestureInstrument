@@ -263,10 +263,3 @@ void HUDComponents::drawDial(juce::Graphics& g, juce::Rectangle<int> bounds, Ges
     g.strokePath(pointer, juce::PathStrokeType(2.0f));
 }
 
-void HUDComponents::mouseDown(const juce::MouseEvent& e) {
-    myDragger.startDraggingComponent(this, e);
-}
-
-void HUDComponents::mouseDrag(const juce::MouseEvent& e) {
-    myDragger.dragComponent(this, e, nullptr);
-}
