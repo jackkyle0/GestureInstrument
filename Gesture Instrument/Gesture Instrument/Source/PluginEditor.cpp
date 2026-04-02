@@ -16,9 +16,17 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(Ges
     addAndMakeVisible(calibrationOverlay);
     calibrationOverlay.setVisible(false);
 
+    addAndMakeVisible(muteButton);
+    muteButton.button.setButtonText("Mute");
+    muteButton.button.setClickingTogglesState(true);
+    muteButton.button.onClick = [this] {
+        audioProcessor.globalMute.store(muteButton.button.getToggleState());
+        };
 
+    calibrationOverlay.onCancel = [this] { stopCalibration(false); };
 
     addAndMakeVisible(calibrateButton);
+    calibrateButton.setButtonText("Calibrate");
     calibrateButton.onClick = [this] { startCalibration(); };
 
     addAndMakeVisible(editModeButton);
@@ -28,7 +36,7 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(Ges
     editModeButton.setColour(juce::TextButton::buttonOnColourId, juce::Colours::orange);
     editModeButton.onClick = [this] {
         isEditMode = editModeButton.getToggleState();
-        audioProcessor.muteOutput.store(isEditMode || isCalibrating);
+        audioProcessor.isVirtualMouse.store(isEditMode);
         };
 
     addAndMakeVisible(connectionStatusLabel);
@@ -52,6 +60,7 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(Ges
     zMaxControl.slider.onValueChange = [this] { audioProcessor.maxDepthThreshold = (float)zMaxControl.slider.getValue(); };
 
     addAndMakeVisible(staticDialsButton);
+    staticDialsButton.setButtonText("Static Dials");
     staticDialsButton.onClick = [this] {
         staticDialsPage.setVisible(true);
 
@@ -75,6 +84,7 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(Ges
         yMinControl.setVisible(false); yMaxControl.setVisible(false);
         zMinControl.setVisible(false); zMaxControl.setVisible(false);
         };
+
     addChildComponent(staticDialsPage);
     staticDialsPage.setVisible(false);
 
@@ -101,7 +111,7 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(Ges
         };
 
     addAndMakeVisible(settingsButton);
-
+    settingsButton.setButtonText("Settings");
     settingsButton.onClick = [this] {
         settingsPage.setVisible(true);
 
@@ -150,6 +160,7 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(Ges
 
     settingsPage.onPresetLoaded = [this] {
         rangeModeSelector.onChange();
+        settingsPage.refreshUI();
         resized();
         repaint();
         };
@@ -218,6 +229,7 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(Ges
     rangeModeSelector.setSelectedId(audioProcessor.currentRangeMode == MusicalRangeMode::SpecificNotes ? 2 : 1, juce::NotificationType::sendNotificationSync);
 
     addAndMakeVisible(showNoteNamesButton);
+    showNoteNamesButton.setButtonText("Show Notes");
     showNoteNamesButton.setToggleState(false, juce::dontSendNotification);
     showNoteNamesButton.setColour(juce::ToggleButton::textColourId, juce::Colours::white);
     showNoteNamesButton.onClick = [this] {
@@ -225,13 +237,9 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(Ges
         repaint();
         };
 
-    
-
     audioProcessor.oscManager.onStyleChanged = [this](float leftStyle, float rightStyle) {
         juce::MessageManager::callAsync([this, leftStyle, rightStyle]() {
-
             float maxStyle = std::max(leftStyle, rightStyle);
-
             if (std::abs(currentStyle - maxStyle) > 0.01f) {
                 currentStyle = maxStyle;
                 repaint();
@@ -304,29 +312,334 @@ void GestureInstrumentAudioProcessorEditor::paint(juce::Graphics& g) {
         g.strokePath(p, juce::PathStrokeType(4.0f));
     }
 
-
     auto indicatorColor = juce::Colours::skyblue.interpolatedWith(juce::Colours::indianred, currentStyle);
     g.setColour(indicatorColor);
 
-    auto area = getLocalBounds().removeFromTop(40).reduced(10);
+    auto area = getLocalBounds().removeFromTop(40).reduced(150, 10);
     g.fillRoundedRectangle(area.toFloat(), 5.0f);
 
     g.setColour(juce::Colours::white);
-
     juce::String label = "INTENT: " + juce::String(currentStyle * 100.0f, 0) + "% AGGRESSIVE";
     g.drawText(label, area, juce::Justification::centred);
 
+    float sustainVal = -1.0f;
+    float portamentoVal = -1.0f;
+
+    if (audioProcessor.currentOutputMode == OutputMode::MIDI_Only) {
+        sustainVal = audioProcessor.midiManager.liveSustain.load();
+        portamentoVal = audioProcessor.midiManager.livePortamento.load();
+    }
+    else if (audioProcessor.currentOutputMode == OutputMode::OSC_Only) {
+        sustainVal = audioProcessor.oscManager.liveSustain.load();
+    }
+
+    auto isLeftHand = [&](GestureTarget t) {
+        return audioProcessor.leftXTarget == t || audioProcessor.leftYTarget == t ||
+            audioProcessor.leftZTarget == t || audioProcessor.leftRollTarget == t ||
+            audioProcessor.leftGrabTarget == t || audioProcessor.leftPinchTarget == t ||
+            audioProcessor.leftThumbTarget == t || audioProcessor.leftIndexTarget == t ||
+            audioProcessor.leftMiddleTarget == t || audioProcessor.leftRingTarget == t ||
+            audioProcessor.leftPinkyTarget == t;
+        };
+
+    auto isRightHand = [&](GestureTarget t) {
+        return audioProcessor.rightXTarget == t || audioProcessor.rightYTarget == t ||
+            audioProcessor.rightZTarget == t || audioProcessor.rightRollTarget == t ||
+            audioProcessor.rightGrabTarget == t || audioProcessor.rightPinchTarget == t ||
+            audioProcessor.rightThumbTarget == t || audioProcessor.rightIndexTarget == t ||
+            audioProcessor.rightMiddleTarget == t || audioProcessor.rightRingTarget == t ||
+            audioProcessor.rightPinkyTarget == t;
+        };
+
+    auto drawStaticBadge = [&](juce::String name, float value, juce::Rectangle<int> drawArea, bool isMappedToThisHand) {
+        bool isOn = isMappedToThisHand && (value > 0.5f);
+
+        juce::Colour badgeCol = isOn ? juce::Colours::orange : juce::Colours::darkgrey;
+
+        float fillAlpha = isMappedToThisHand ? 0.2f : 0.05f;
+        float lineAlpha = isMappedToThisHand ? 1.0f : 0.3f;
+
+        g.setColour(badgeCol.withAlpha(fillAlpha));
+        g.fillRoundedRectangle(drawArea.toFloat(), 6.0f);
+
+        g.setColour(badgeCol.withAlpha(lineAlpha));
+        g.drawRoundedRectangle(drawArea.toFloat(), 2.0f, 6.0f);
+
+        g.setColour(juce::Colours::white.withAlpha(lineAlpha));
+        g.setFont(juce::Font(14.0f, juce::Font::bold));
+
+        g.drawText(name + (isOn ? ": ON" : ": OFF"), drawArea, juce::Justification::centred);
+        };
+
+    int badgeW = 160;
+    int badgeH = 35;
+    int padding = 10;
+    int baseY = getHeight() - badgeH - 140;
+
+    int leftX = 130;
+    int rightX = getWidth() - badgeW - 130;
+
+    bool susMappedLeft = isLeftHand(GestureTarget::Sustain);
+    bool susMappedRight = isRightHand(GestureTarget::Sustain);
+    drawStaticBadge("SUSTAIN", sustainVal, juce::Rectangle<int>(leftX, baseY, badgeW, badgeH), susMappedLeft);
+    drawStaticBadge("SUSTAIN", sustainVal, juce::Rectangle<int>(rightX, baseY, badgeW, badgeH), susMappedRight);
+
+    if (audioProcessor.currentOutputMode == OutputMode::MIDI_Only) {
+        bool portMappedLeft = isLeftHand(GestureTarget::Portamento);
+        bool portMappedRight = isRightHand(GestureTarget::Portamento);
+        int portY = baseY - badgeH - padding; 
+
+        drawStaticBadge("PORTAMENTO", portamentoVal, juce::Rectangle<int>(leftX, portY, badgeW, badgeH), portMappedLeft);
+        drawStaticBadge("PORTAMENTO", portamentoVal, juce::Rectangle<int>(rightX, portY, badgeW, badgeH), portMappedRight);
+    }
 }
 
-void GestureInstrumentAudioProcessorEditor::draw3DGrid(juce::Graphics& g) {
-    float roomW = 400.0f;
-    float roomH = 600.0f;
-    float roomD = 300.0f;
+void GestureInstrumentAudioProcessorEditor::resized() {
+    calibrationOverlay.setBounds(getLocalBounds());
+    settingsPage.setBounds(getLocalBounds());
+    staticDialsPage.setBounds(getLocalBounds());
+    virtualCursor.setBounds(getLocalBounds());
 
-    Point3D f1 = { -roomW, 0, -roomD }; Point3D f2 = { roomW, 0, -roomD };
-    Point3D f3 = { roomW, 0, roomD };   Point3D f4 = { -roomW, 0, roomD };
-    Point3D c1 = { -roomW, roomH, -roomD }; Point3D c2 = { roomW, roomH, -roomD };
-    Point3D c3 = { roomW, roomH, roomD };   Point3D c4 = { -roomW, roomH, roomD };
+    int margin = 10;
+    int topBarY = margin;
+    int buttonW = 120;
+    int controlHeight = 30;
+
+    rootSelector.setBounds(margin + 40, topBarY, 60, controlHeight);
+    scaleSelector.setBounds(rootSelector.getRight() + 10, topBarY, 120, controlHeight);
+
+    int row2Y = topBarY + controlHeight + 5;
+    rangeModeSelector.setBounds(margin, row2Y, 140, controlHeight);
+
+    int octX = rangeModeSelector.getRight() + 10;
+    octaveSelector.setBounds(octX, row2Y, 100, controlHeight);
+    startNoteSelector.setBounds(octX, row2Y, 85, controlHeight);
+    endNoteSelector.setBounds(startNoteSelector.getRight() + 5, row2Y, 85, controlHeight);
+
+    int centerX = getWidth() / 2;
+    settingsButton.setBounds(centerX - 185, topBarY, buttonW, 30);
+    calibrateButton.setBounds(centerX - 60, topBarY, buttonW, 30);
+    editModeButton.setBounds(centerX + 65, topBarY, buttonW, 30);
+    staticDialsButton.setBounds(centerX + 190, topBarY, buttonW, 30);
+
+    int rightEdge = getWidth() - margin;
+    connectionStatusLabel.setBounds(rightEdge - 200, topBarY, 200, 20);
+    showNoteNamesButton.setBounds(rightEdge - 150, topBarY + 25, 150, 30);
+
+    hud.setBounds(0, 110, getWidth(), 550);
+
+    auto bottomArea = getLocalBounds().removeFromBottom(120).reduced(20, 10);
+    int colWidth = bottomArea.getWidth() / 3;
+
+    auto xCol = bottomArea.removeFromLeft(colWidth).reduced(15, 0);
+    auto yCol = bottomArea.removeFromLeft(colWidth).reduced(15, 0);
+    auto zCol = bottomArea.removeFromLeft(colWidth).reduced(15, 0);
+
+    int halfHeight = xCol.getHeight() / 2;
+    xMinControl.setBounds(xCol.removeFromTop(halfHeight).reduced(0, 2));
+    xMaxControl.setBounds(xCol.reduced(0, 2));
+    yMinControl.setBounds(yCol.removeFromTop(halfHeight).reduced(0, 2));
+    yMaxControl.setBounds(yCol.reduced(0, 2));
+    zMinControl.setBounds(zCol.removeFromTop(halfHeight).reduced(0, 2));
+    zMaxControl.setBounds(zCol.reduced(0, 2));
+
+    muteButton.setBounds(10, 100, 200, 30);
+
+}
+
+void GestureInstrumentAudioProcessorEditor::timerCallback() {
+    if (isCalibrating) {
+        calibrationTimer += 1.0f / 60.0f;
+        calibrationOverlay.setProgress(calibrationTimer / calibrationDuration);
+
+        auto processHand = [&](const HandData& hand) {
+            if (!hand.isPresent) return;
+
+            if (hand.currentHandPositionX < tempMinX) tempMinX = hand.currentHandPositionX;
+            if (hand.currentHandPositionX > tempMaxX) tempMaxX = hand.currentHandPositionX;
+
+            if (hand.currentHandPositionY < tempMinY) tempMinY = hand.currentHandPositionY;
+            if (hand.currentHandPositionY > tempMaxY) tempMaxY = hand.currentHandPositionY;
+
+            if (hand.currentHandPositionZ < tempMinZ) tempMinZ = hand.currentHandPositionZ;
+            if (hand.currentHandPositionZ > tempMaxZ) tempMaxZ = hand.currentHandPositionZ;
+
+            tempMinX = juce::jmax(-350.0f, tempMinX);
+            tempMaxX = juce::jmin(350.0f, tempMaxX);
+            tempMinY = juce::jmax(50.0f, tempMinY);
+            tempMaxY = juce::jmin(500.0f, tempMaxY);
+            tempMinZ = juce::jmax(-225.0f, tempMinZ);
+            tempMaxZ = juce::jmin(225.0f, tempMaxZ);
+            };
+
+        processHand(audioProcessor.leftHand);
+        processHand(audioProcessor.rightHand);
+
+        bool leftFist = audioProcessor.leftHand.isPresent && audioProcessor.leftHand.grabStrength > 0.85f;
+        bool rightFist = audioProcessor.rightHand.isPresent && audioProcessor.rightHand.grabStrength > 0.85f;
+
+        if (leftFist || rightFist) {
+            stopCalibration(true);
+            return;
+        }
+
+        if (calibrationTimer >= calibrationDuration) {
+            stopCalibration(true);
+        }
+    }
+
+    if (settingsPage.enableGestureSwitchButton.getToggleState() && !isCalibrating) {
+        bool leftFist = audioProcessor.leftHand.isPresent && audioProcessor.leftHand.grabStrength > 0.85f;
+        bool rightFist = audioProcessor.rightHand.isPresent && audioProcessor.rightHand.grabStrength > 0.85f;
+        bool gestureTriggered = false;
+
+        int mode = settingsPage.gestureTypeSelector.getSelectedId();
+        if (mode == 1) gestureTriggered = leftFist && rightFist;
+        else if (mode == 2) gestureTriggered = rightFist;
+        else if (mode == 3) gestureTriggered = leftFist;
+
+        float requiredHoldTime = (float)settingsPage.gestureTimerSlider.getValue();
+
+        if (gestureTriggered && !menuGestureFired) {
+            menuGestureTimer += 1.0f / 60.0f;
+            if (menuGestureTimer >= requiredHoldTime) {
+                editModeButton.triggerClick();
+                menuGestureFired = true;
+                menuGestureTimer = 0.0f;
+            }
+        }
+        else if (!gestureTriggered) {
+            menuGestureTimer = 0.0f;
+            menuGestureFired = false;
+        }
+    }
+    else {
+        menuGestureTimer = 0.0f;
+        menuGestureFired = false;
+    }
+
+    virtualCursor.updateCursorLogic(isEditMode);
+    updateConnectionStatus();
+    repaint();
+}
+
+void GestureInstrumentAudioProcessorEditor::updateConnectionStatus() {
+    bool connected = audioProcessor.isSensorConnected;
+    if (connected) {
+        connectionStatusLabel.setText("Sensor Connected", juce::dontSendNotification);
+        connectionStatusLabel.setColour(juce::Label::textColourId, juce::Colours::green);
+    }
+    else {
+        connectionStatusLabel.setText("Sensor Disconnected", juce::dontSendNotification);
+        connectionStatusLabel.setColour(juce::Label::textColourId, juce::Colours::red);
+    }
+}
+
+void GestureInstrumentAudioProcessorEditor::CalibrationOverlay::paint(juce::Graphics& g) {
+    g.fillAll(juce::Colours::black.withAlpha(0.4f));
+    g.setColour(juce::Colours::white);
+    g.setFont(juce::Font(28.0f, juce::Font::bold));
+    g.drawText("Move hands to draw out playing area.", getLocalBounds().withY(-50), juce::Justification::centred);
+
+    auto barArea = getLocalBounds().removeFromBottom(40).reduced(100, 15);
+    g.setColour(juce::Colours::darkgrey);
+    g.fillRoundedRectangle(barArea.toFloat(), 5.0f);
+    g.setColour(juce::Colours::green);
+    g.fillRoundedRectangle(barArea.removeFromLeft(barArea.getWidth() * progress).toFloat(), 5.0f);
+
+    g.setColour(juce::Colours::yellow);
+    g.setFont(juce::Font(20.0f, juce::Font::plain));
+    g.drawText("Grab gesture to confirm.", getLocalBounds().withY(20), juce::Justification::centred);
+}
+
+void GestureInstrumentAudioProcessorEditor::CalibrationOverlay::setProgress(float p) {
+    progress = p;
+    repaint();
+}
+
+void GestureInstrumentAudioProcessorEditor::startCalibration() {
+    isCalibrating = true;
+    audioProcessor.isCalibrating.store(true);
+    calibrationTimer = 0.0f;
+    tempMinX = 1000.0f; tempMaxX = -1000.0f;
+    tempMinY = 1000.0f; tempMaxY = -1000.0f;
+    tempMinZ = 1000.0f; tempMaxZ = -1000.0f;
+    calibrationOverlay.setVisible(true);
+
+    calibrationOverlay.toFront(true);
+    virtualCursor.toFront(true);
+}
+
+void GestureInstrumentAudioProcessorEditor::stopCalibration(bool success) {
+    isCalibrating = false;
+    audioProcessor.isCalibrating.store(false);
+    calibrationOverlay.setVisible(false);
+
+    if (success) {
+        audioProcessor.minWidthThreshold = juce::jlimit(-350.0f, 0.0f, tempMinX);
+        audioProcessor.maxWidthThreshold = juce::jlimit(0.0f, 350.0f, tempMaxX);
+
+        audioProcessor.minHeightThreshold = juce::jlimit(50.0f, 275.0f, tempMinY);
+        audioProcessor.maxHeightThreshold = juce::jlimit(275.0f, 500.0f, tempMaxY);
+
+        audioProcessor.minDepthThreshold = juce::jlimit(-225.0f, 0.0f, tempMinZ);
+        audioProcessor.maxDepthThreshold = juce::jlimit(0.0f, 225.0f, tempMaxZ);
+
+        yMinControl.slider.setValue(audioProcessor.minHeightThreshold, juce::dontSendNotification);
+        yMaxControl.slider.setValue(audioProcessor.maxHeightThreshold, juce::dontSendNotification);
+        xMinControl.slider.setValue(audioProcessor.minWidthThreshold, juce::dontSendNotification);
+        xMaxControl.slider.setValue(audioProcessor.maxWidthThreshold, juce::dontSendNotification);
+        zMinControl.slider.setValue(audioProcessor.minDepthThreshold, juce::dontSendNotification);
+        zMaxControl.slider.setValue(audioProcessor.maxDepthThreshold, juce::dontSendNotification);
+    }
+}
+
+void GestureInstrumentAudioProcessorEditor::drawCalibrationBox3D(juce::Graphics& g) {
+    if (!isCalibrating || tempMinX == 1000.0f) return;
+
+    Point3D f1 = { tempMinX, tempMinY, tempMinZ };
+    Point3D f2 = { tempMaxX, tempMinY, tempMinZ };
+    Point3D f3 = { tempMaxX, tempMinY, tempMaxZ };
+    Point3D f4 = { tempMinX, tempMinY, tempMaxZ };
+
+    Point3D c1 = { tempMinX, tempMaxY, tempMinZ };
+    Point3D c2 = { tempMaxX, tempMaxY, tempMinZ };
+    Point3D c3 = { tempMaxX, tempMaxY, tempMaxZ };
+    Point3D c4 = { tempMinX, tempMaxY, tempMaxZ };
+
+    auto pF1 = projectPoint(f1); auto pF2 = projectPoint(f2);
+    auto pF3 = projectPoint(f3); auto pF4 = projectPoint(f4);
+    auto pC1 = projectPoint(c1); auto pC2 = projectPoint(c2);
+    auto pC3 = projectPoint(c3); auto pC4 = projectPoint(c4);
+
+    g.setColour(juce::Colours::cyan.withAlpha(0.8f));
+    float thick = 2.0f;
+
+    g.drawLine(juce::Line<float>(pF1, pF2), thick); g.drawLine(juce::Line<float>(pF2, pF3), thick);
+    g.drawLine(juce::Line<float>(pF3, pF4), thick); g.drawLine(juce::Line<float>(pF4, pF1), thick);
+
+    g.drawLine(juce::Line<float>(pC1, pC2), thick); g.drawLine(juce::Line<float>(pC2, pC3), thick);
+    g.drawLine(juce::Line<float>(pC3, pC4), thick); g.drawLine(juce::Line<float>(pC4, pC1), thick);
+
+    g.drawLine(juce::Line<float>(pF1, pC1), thick); g.drawLine(juce::Line<float>(pF2, pC2), thick);
+    g.drawLine(juce::Line<float>(pF3, pC3), thick); g.drawLine(juce::Line<float>(pF4, pC4), thick);
+}
+
+
+void GestureInstrumentAudioProcessorEditor::draw3DGrid(juce::Graphics& g) {
+    float minRoomX = -350.0f; float maxRoomX = 350.0f;
+    float minRoomY = 50.0f;   float maxRoomY = 500.0f;
+    float minRoomZ = -225.0f; float maxRoomZ = 225.0f;
+
+    Point3D f1 = { minRoomX, minRoomY, minRoomZ };
+    Point3D f2 = { maxRoomX, minRoomY, minRoomZ };
+    Point3D f3 = { maxRoomX, minRoomY, maxRoomZ };
+    Point3D f4 = { minRoomX, minRoomY, maxRoomZ };
+
+    Point3D c1 = { minRoomX, maxRoomY, minRoomZ };
+    Point3D c2 = { maxRoomX, maxRoomY, minRoomZ };
+    Point3D c3 = { maxRoomX, maxRoomY, maxRoomZ };
+    Point3D c4 = { minRoomX, maxRoomY, maxRoomZ };
 
     auto pF1 = projectPoint(f1); auto pF2 = projectPoint(f2);
     auto pF3 = projectPoint(f3); auto pF4 = projectPoint(f4);
@@ -334,6 +647,7 @@ void GestureInstrumentAudioProcessorEditor::draw3DGrid(juce::Graphics& g) {
     auto pC3 = projectPoint(c3); auto pC4 = projectPoint(c4);
 
     g.setColour(juce::Colours::white.withAlpha(0.08f));
+
     g.drawLine(juce::Line<float>(pF1, pF2)); g.drawLine(juce::Line<float>(pF2, pF3));
     g.drawLine(juce::Line<float>(pF3, pF4)); g.drawLine(juce::Line<float>(pF4, pF1));
     g.drawLine(juce::Line<float>(pC1, pC2)); g.drawLine(juce::Line<float>(pC2, pC3));
@@ -375,18 +689,16 @@ void GestureInstrumentAudioProcessorEditor::draw3DHand(juce::Graphics& g, const 
     auto rotateLocal = [&](float x, float y, float z) -> Point3D {
         float dy = y - hand.currentHandPositionY;
         float dz = z - hand.currentHandPositionZ;
-
-        float angle = juce::MathConstants<float>::pi * 0.20f; 
+        float angle = juce::MathConstants<float>::pi * 0.20f;
         float cosA = std::cos(angle);
         float sinA = std::sin(angle);
-
         float rotY = dy * cosA - dz * sinA;
         float rotZ = dy * sinA + dz * cosA;
-
         return { x, hand.currentHandPositionY + rotY, hand.currentHandPositionZ + rotZ };
         };
 
     auto clampPoint = [&](Point3D p) -> Point3D {
+        if (isCalibrating) return p;
         return {
             juce::jlimit(audioProcessor.minWidthThreshold, audioProcessor.maxWidthThreshold, p.x),
             juce::jlimit(audioProcessor.minHeightThreshold, audioProcessor.maxHeightThreshold, p.y),
@@ -457,243 +769,16 @@ void GestureInstrumentAudioProcessorEditor::draw3DHand(juce::Graphics& g, const 
     }
 }
 
-void GestureInstrumentAudioProcessorEditor::resized() {
-    calibrationOverlay.setBounds(getLocalBounds());
-    settingsPage.setBounds(getLocalBounds());
-    staticDialsPage.setBounds(getLocalBounds());
-    virtualCursor.setBounds(getLocalBounds());
-
-    int margin = 10;
-    int topBarY = margin;
-    int buttonW = 120;
-    int controlHeight = 30;
-
-    rootSelector.setBounds(margin + 40, topBarY, 60, controlHeight);
-    scaleSelector.setBounds(rootSelector.getRight() + 10, topBarY, 120, controlHeight);
-
-    int row2Y = topBarY + controlHeight + 5; 
-
-    rangeModeSelector.setBounds(margin, row2Y, 140, controlHeight);
-
-    int octX = rangeModeSelector.getRight() + 10;
-    octaveSelector.setBounds(octX, row2Y, 100, controlHeight);
-    startNoteSelector.setBounds(octX, row2Y, 85, controlHeight);
-    endNoteSelector.setBounds(startNoteSelector.getRight() + 5, row2Y, 85, controlHeight);
-
-    int centerX = getWidth() / 2;
-    settingsButton.setBounds(centerX - 185, topBarY, buttonW, 30);
-
-    calibrateButton.setBounds(centerX - 60, topBarY, buttonW, 30);
-    editModeButton.setBounds(centerX + 65, topBarY, buttonW, 30);
-    staticDialsButton.setBounds(centerX + 190, topBarY, buttonW, 30);
-
-
-  
-
-    int rightEdge = getWidth() - margin;
-    connectionStatusLabel.setBounds(rightEdge - 200, topBarY, 200, 20);
-
-    showNoteNamesButton.setBounds(rightEdge - 150, topBarY + 25, 150, 30);
-
-    
-
-    hud.setBounds(0, 110, getWidth(), 550);
-
-    auto bottomArea = getLocalBounds().removeFromBottom(120).reduced(20, 10);
-    int colWidth = bottomArea.getWidth() / 3;
-
-    auto xCol = bottomArea.removeFromLeft(colWidth).reduced(15, 0);
-    auto yCol = bottomArea.removeFromLeft(colWidth).reduced(15, 0);
-    auto zCol = bottomArea.removeFromLeft(colWidth).reduced(15, 0);
-
-    int halfHeight = xCol.getHeight() / 2;
-    xMinControl.setBounds(xCol.removeFromTop(halfHeight).reduced(0, 2));
-    xMaxControl.setBounds(xCol.reduced(0, 2));
-    yMinControl.setBounds(yCol.removeFromTop(halfHeight).reduced(0, 2));
-    yMaxControl.setBounds(yCol.reduced(0, 2));
-    zMinControl.setBounds(zCol.removeFromTop(halfHeight).reduced(0, 2));
-    zMaxControl.setBounds(zCol.reduced(0, 2));
-}
-
-void GestureInstrumentAudioProcessorEditor::timerCallback() {
-    updateConnectionStatus();
-
-    if (isCalibrating) {
-        calibrationTimer += 1.0f / 60.0f;
-        calibrationOverlay.setProgress(calibrationTimer / calibrationDuration);
-
-        auto processHand = [&](const HandData& hand) {
-            if (!hand.isPresent) return;
-
-            if (hand.currentHandPositionX < tempMinX) tempMinX = hand.currentHandPositionX;
-            if (hand.currentHandPositionX > tempMaxX) tempMaxX = hand.currentHandPositionX;
-
-            if (hand.currentHandPositionY < tempMinY) tempMinY = hand.currentHandPositionY;
-            if (hand.currentHandPositionY > tempMaxY) tempMaxY = hand.currentHandPositionY;
-
-            if (hand.currentHandPositionZ < tempMinZ) tempMinZ = hand.currentHandPositionZ;
-            if (hand.currentHandPositionZ > tempMaxZ) tempMaxZ = hand.currentHandPositionZ;
-
-            tempMinX = juce::jmax(-350.0f, tempMinX);
-            tempMaxX = juce::jmin(350.0f, tempMaxX);
-
-            tempMinY = juce::jmax(50.0f, tempMinY);
-            tempMaxY = juce::jmin(500.0f, tempMaxY);
-
-            tempMinZ = juce::jmax(-225.0f, tempMinZ);
-            tempMaxZ = juce::jmin(225.0f, tempMaxZ);
-            };
-
-        processHand(audioProcessor.leftHand);
-        processHand(audioProcessor.rightHand);
-
-        bool leftFist = audioProcessor.leftHand.isPresent && audioProcessor.leftHand.grabStrength > 0.85f;
-        bool rightFist = audioProcessor.rightHand.isPresent && audioProcessor.rightHand.grabStrength > 0.85f;
-
-        if (leftFist || rightFist) {
-            stopCalibration(true);
-            return;
-        }
-
-        if (calibrationTimer >= calibrationDuration) {
-            stopCalibration(true);
+bool GestureInstrumentAudioProcessorEditor::keyPressed(const juce::KeyPress& key) {
+    if (key == juce::KeyPress::spaceKey) {
+         muteButton.button.triggerClick(); 
+        return true;
+    }
+    if (key == juce::KeyPress::escapeKey) {
+        if (isCalibrating) {
+            stopCalibration(false);
+            return true;
         }
     }
-
-    if (settingsPage.enableGestureSwitchButton.getToggleState() && !isCalibrating) {
-        bool leftFist = audioProcessor.leftHand.isPresent && audioProcessor.leftHand.grabStrength > 0.85f;
-        bool rightFist = audioProcessor.rightHand.isPresent && audioProcessor.rightHand.grabStrength > 0.85f;
-        bool gestureTriggered = false;
-
-        int mode = settingsPage.gestureTypeSelector.getSelectedId();
-
-        if (mode == 1) gestureTriggered = leftFist && rightFist;
-        else if (mode == 2) gestureTriggered = rightFist;
-        else if (mode == 3) gestureTriggered = leftFist;
-
-        float requiredHoldTime = (float)settingsPage.gestureTimerSlider.getValue();
-
-        if (gestureTriggered && !menuGestureFired) {
-            menuGestureTimer += 1.0f / 60.0f;
-
-            if (menuGestureTimer >= requiredHoldTime) {
-                editModeButton.triggerClick();
-                menuGestureFired = true;
-                menuGestureTimer = 0.0f;
-            }
-        }
-        else if (!gestureTriggered) {
-            menuGestureTimer = 0.0f;
-            menuGestureFired = false;
-        }
-    }
-    else {
-        menuGestureTimer = 0.0f;
-        menuGestureFired = false;
-    }
-
-    virtualCursor.updateCursorLogic(isEditMode);
-    repaint();
-}
-
-void GestureInstrumentAudioProcessorEditor::updateConnectionStatus() {
-    bool connected = audioProcessor.isSensorConnected;
-    if (connected) {
-        connectionStatusLabel.setText("Sensor Connected", juce::dontSendNotification);
-        connectionStatusLabel.setColour(juce::Label::textColourId, juce::Colours::green);
-    }
-    else {
-        connectionStatusLabel.setText("Sensor Disconnected", juce::dontSendNotification);
-        connectionStatusLabel.setColour(juce::Label::textColourId, juce::Colours::red);
-    }
-}
-
-void GestureInstrumentAudioProcessorEditor::comboBoxChanged(juce::ComboBox* box) {
-}
-
-void GestureInstrumentAudioProcessorEditor::CalibrationOverlay::paint(juce::Graphics& g) {
-    g.fillAll(juce::Colours::black.withAlpha(0.85f));
-    g.setColour(juce::Colours::white);
-    g.setFont(juce::Font(28.0f, juce::Font::bold));
-    g.drawText("Move hands to draw out playing area.", getLocalBounds().withY(-50), juce::Justification::centred);
-
-    g.setColour(juce::Colours::yellow);
-    g.setFont(juce::Font(20.0f, juce::Font::plain));
-    g.drawText("Grab gesture to confirm.", getLocalBounds().withY(20), juce::Justification::centred);
-
-    auto barArea = getLocalBounds().removeFromBottom(40).reduced(100, 15);
-    g.setColour(juce::Colours::darkgrey);
-    g.fillRoundedRectangle(barArea.toFloat(), 5.0f);
-    g.setColour(juce::Colours::green);
-    g.fillRoundedRectangle(barArea.removeFromLeft(barArea.getWidth() * progress).toFloat(), 5.0f);
-}
-
-void GestureInstrumentAudioProcessorEditor::CalibrationOverlay::setProgress(float p) {
-    progress = p;
-}
-
-void GestureInstrumentAudioProcessorEditor::startCalibration() {
-    isCalibrating = true;
-    audioProcessor.muteOutput.store(true);
-    calibrationTimer = 0.0f;
-    tempMinX = 1000.0f; tempMaxX = -1000.0f;
-    tempMinY = 1000.0f; tempMaxY = -1000.0f;
-    tempMinZ = 1000.0f; tempMaxZ = -1000.0f;
-    calibrationOverlay.setVisible(true);
-}
-
-void GestureInstrumentAudioProcessorEditor::stopCalibration(bool success) {
-    isCalibrating = false;
-    audioProcessor.muteOutput.store(isEditMode);
-    calibrationOverlay.setVisible(false);
-
-    if (success) {
-        audioProcessor.minWidthThreshold = juce::jlimit(-350.0f, 0.0f, tempMinX);
-        audioProcessor.maxWidthThreshold = juce::jlimit(0.0f, 350.0f, tempMaxX);
-
-        audioProcessor.minHeightThreshold = juce::jlimit(50.0f, 275.0f, tempMinY);
-        audioProcessor.maxHeightThreshold = juce::jlimit(275.0f, 500.0f, tempMaxY);
-
-        audioProcessor.minDepthThreshold = juce::jlimit(-225.0f, 0.0f, tempMinZ);
-        audioProcessor.maxDepthThreshold = juce::jlimit(0.0f, 225.0f, tempMaxZ);
-
-        yMinControl.slider.setValue(audioProcessor.minHeightThreshold, juce::dontSendNotification);
-        yMaxControl.slider.setValue(audioProcessor.maxHeightThreshold, juce::dontSendNotification);
-        xMinControl.slider.setValue(audioProcessor.minWidthThreshold, juce::dontSendNotification);
-        xMaxControl.slider.setValue(audioProcessor.maxWidthThreshold, juce::dontSendNotification);
-        zMinControl.slider.setValue(audioProcessor.minDepthThreshold, juce::dontSendNotification);
-        zMaxControl.slider.setValue(audioProcessor.maxDepthThreshold, juce::dontSendNotification);
-    }
-}
-
-
-void GestureInstrumentAudioProcessorEditor::drawCalibrationBox3D(juce::Graphics& g) {
-    if (!isCalibrating || tempMinX == 1000.0f) return;
-
-    Point3D f1 = { tempMinX, tempMinY, tempMinZ };
-    Point3D f2 = { tempMaxX, tempMinY, tempMinZ };
-    Point3D f3 = { tempMaxX, tempMinY, tempMaxZ };
-    Point3D f4 = { tempMinX, tempMinY, tempMaxZ };
-
-    Point3D c1 = { tempMinX, tempMaxY, tempMinZ };
-    Point3D c2 = { tempMaxX, tempMaxY, tempMinZ };
-    Point3D c3 = { tempMaxX, tempMaxY, tempMaxZ };
-    Point3D c4 = { tempMinX, tempMaxY, tempMaxZ };
-
-    auto pF1 = projectPoint(f1); auto pF2 = projectPoint(f2);
-    auto pF3 = projectPoint(f3); auto pF4 = projectPoint(f4);
-    auto pC1 = projectPoint(c1); auto pC2 = projectPoint(c2);
-    auto pC3 = projectPoint(c3); auto pC4 = projectPoint(c4);
-
-    g.setColour(juce::Colours::cyan.withAlpha(0.8f));
-    float thick = 2.0f;
-
-    g.drawLine(juce::Line<float>(pF1, pF2), thick); g.drawLine(juce::Line<float>(pF2, pF3), thick);
-    g.drawLine(juce::Line<float>(pF3, pF4), thick); g.drawLine(juce::Line<float>(pF4, pF1), thick);
-
-    g.drawLine(juce::Line<float>(pC1, pC2), thick); g.drawLine(juce::Line<float>(pC2, pC3), thick);
-    g.drawLine(juce::Line<float>(pC3, pC4), thick); g.drawLine(juce::Line<float>(pC4, pC1), thick);
-
-    g.drawLine(juce::Line<float>(pF1, pC1), thick); g.drawLine(juce::Line<float>(pF2, pC2), thick);
-    g.drawLine(juce::Line<float>(pF3, pC3), thick); g.drawLine(juce::Line<float>(pF4, pC4), thick);
+    return false;
 }
