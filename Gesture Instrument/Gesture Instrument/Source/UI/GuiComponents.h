@@ -10,38 +10,60 @@ struct MappingRow : public juce::Component {
         label.setText(labelText, juce::dontSendNotification);
         label.setColour(juce::Label::textColourId, juce::Colours::white);
 
+        label.setMinimumHorizontalScale(1.0f);
         addAndMakeVisible(comboBox);
-
-        comboBox.addItem("None", 99);
-        comboBox.addSeparator();
-
-        comboBox.addItem("Volume", 1);
-        comboBox.addItem("Pitch", 2);
-        comboBox.addItem("Note Off", 3);
-        comboBox.addItem("Modulation", 4);
-        comboBox.addItem("Expression", 5);
-        comboBox.addItem("Breath", 6);
-        comboBox.addItem("Cutoff", 7);
-        comboBox.addItem("Resonance", 8);
-        comboBox.addItem("Attack", 9);
-        comboBox.addItem("Release", 10);
-        comboBox.addItem("Vibrato", 11);
-        comboBox.addItem("Pan", 12);
-        comboBox.addItem("Reverb", 13);
-        comboBox.addItem("Chorus", 14);
-        comboBox.addItem("Sustain", 15);
-        comboBox.addItem("Portamento", 16);
-        comboBox.addItem("Waveform", 17);
 
         comboBox.setSelectedId(defaultId, juce::dontSendNotification);
     }
 
+    void updateList(bool isOSCMode) {
+        int currentlySelected = comboBox.getSelectedId();
+        comboBox.clear();
+
+        comboBox.addItem("None", 1);
+        comboBox.addSeparator();
+
+        comboBox.addItem("Volume", 2);
+        comboBox.addItem("Pitch", 3);
+        comboBox.addItem("Mute", 4);
+        comboBox.addItem("Cutoff", 8);
+        comboBox.addItem("Resonance", 9);
+        comboBox.addItem("Attack", 10);
+        comboBox.addItem("Release", 11);
+        comboBox.addItem("Vibrato", 12);
+        comboBox.addItem("Pan", 13);
+        comboBox.addItem("Reverb", 14);
+        comboBox.addItem("Chorus", 15);
+        comboBox.addItem("Sustain", 16);
+
+        if (isOSCMode) {
+            comboBox.addItem("Waveform", 18);
+            comboBox.addItem("Delay", 19);
+            comboBox.addItem("Distortion", 20);
+        }
+        else {
+            comboBox.addItem("Modulation", 5);
+            comboBox.addItem("Expression", 6);
+            comboBox.addItem("Breath", 7);
+            comboBox.addItem("Portamento", 17);
+        }
+
+        if (comboBox.getItemText(comboBox.indexOfItemId(currentlySelected)).isEmpty()) {
+            comboBox.setSelectedId(1, juce::dontSendNotification);
+        }
+        else {
+            comboBox.setSelectedId(currentlySelected, juce::dontSendNotification);
+        }
+    }
+
     void resized() override {
         auto bounds = getLocalBounds();
-        label.setBounds(bounds.removeFromLeft(100));
+        label.setBounds(bounds.removeFromLeft(120));
         comboBox.setBounds(bounds.reduced(0, 2));
     }
 };
+
+    
 
 struct LabeledSlider : public juce::Component {
     juce::Label label;
@@ -62,4 +84,28 @@ struct LabeledSlider : public juce::Component {
         label.setBounds(bounds.removeFromLeft(80));
         slider.setBounds(bounds);
     }
+};
+
+struct LabeledButton : public juce::Component {
+    juce::Label label;
+    juce::ToggleButton button;
+
+    LabeledButton(juce::String name, bool initialState) {
+        addAndMakeVisible(label);
+        label.setText(name, juce::dontSendNotification);
+        label.setColour(juce::Label::textColourId, juce::Colours::white);
+
+        addAndMakeVisible(button);
+        button.setToggleState(initialState, juce::dontSendNotification);
+
+    }
+
+    void resized() override {
+        auto bounds = getLocalBounds();
+
+        label.setBounds(bounds.removeFromLeft(80));
+
+        button.setBounds(bounds);
+    }
+
 };
