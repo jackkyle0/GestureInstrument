@@ -7,8 +7,6 @@
 #include "../Helpers/AdaptiveEngine.h"
 #include <functional>
 
-
-
 class OscManager {
 public:
     OscManager() {}
@@ -17,6 +15,25 @@ public:
     std::function<void(float, float)> onStyleChanged;
     float leftAIStyle = 0.0f;
     float rightAIStyle = 0.0f;
+
+    juce::OSCSender sender;
+
+    std::atomic<float> liveVolume{ -1.0f };
+    std::atomic<float> livePan{ -1.0f };
+    std::atomic<float> liveModulation{ -1.0f };
+    std::atomic<float> liveExpression{ -1.0f };
+    std::atomic<float> liveCutoff{ -1.0f };
+    std::atomic<float> liveResonance{ -1.0f };
+    std::atomic<float> liveAttack{ -1.0f };
+    std::atomic<float> liveRelease{ -1.0f };
+    std::atomic<float> liveReverb{ -1.0f };
+    std::atomic<float> liveChorus{ -1.0f };
+    std::atomic<float> liveVibrato{ -1.0f };
+    std::atomic<float> liveWaveform{ -1.0f };
+    std::atomic<float> liveDelay{ -1.0f };
+    std::atomic<float> liveDistortion{ -1.0f };
+    std::atomic<float> liveSustain{ -1.0f };
+
 
     void sendEnvelopeData(float envelopeShape) {
         juce::OSCMessage lAtt("/left/attack"); lAtt.addFloat32(envelopeShape); sender.send(lAtt);
@@ -66,8 +83,7 @@ public:
         lastRightSpeed = smoothedRightSpeed;
 
         if (smoothedLeftSpeed > 0.5f || smoothedRightSpeed > 0.5f) {
-
-            float aiMultiplier = 15.0f;
+            float aiMultiplier = 5.0f;
 
             float scaledLeftSpeed = smoothedLeftSpeed * aiMultiplier;
             float scaledLeftJitter = current_l_jitter * aiMultiplier;
@@ -88,15 +104,12 @@ public:
             for (float s : rightStyleHistory) sumRight += s;
             rightAIStyle = sumRight / (float)rightStyleHistory.size();
 
-            juce::Logger::writeToLog("WAKING AI -> Prob: " + juce::String(leftAIStyle) + " | Scaled Spd: " + juce::String(scaledLeftSpeed));
-
             juce::OSCMessage lMsg("/ai/left/style"); lMsg.addFloat32(leftAIStyle); sender.send(lMsg);
             juce::OSCMessage rMsg("/ai/right/style"); rMsg.addFloat32(rightAIStyle); sender.send(rMsg);
 
             if (onStyleChanged) onStyleChanged(leftAIStyle, rightAIStyle);
         }
     }
-
 
     void connectSender(const juce::String& targetIP, int targetPort) {
         sender.connect(targetIP, targetPort);
@@ -157,7 +170,6 @@ public:
         GestureTarget rThumb, GestureTarget rIndex, GestureTarget rMiddle, GestureTarget rRing, GestureTarget rPinky,
         int rootNote, int scaleType, int octaveRange)
     {
-        
         auto normalize = [](float rawValue, float minBound, float maxBound, float sensitivityMultiplier) {
             float mappedValue = juce::jmap(rawValue, minBound, maxBound, 0.0f, 1.0f);
             float centerOffset = 0.5f;
@@ -170,10 +182,13 @@ public:
             leftX = normalize(leftHand.currentHandPositionX, minX, maxX, sensitivity);
             leftY = normalize(leftHand.currentHandPositionY, minY, maxY, sensitivity);
             leftZ = 1.0f - normalize(leftHand.currentHandPositionZ, minZ, maxZ, sensitivity);
+            float leftRoll = normalize(leftHand.currentWristRotation, 0.0f, 1.0f, sensitivity);
+            routeMessage(leftRollTarget, 1.0f - leftRoll, "left", rootNote, scaleType, octaveRange);
 
             routeMessage(leftXTarget, leftX, "left", rootNote, scaleType, octaveRange);
             routeMessage(leftYTarget, leftY, "left", rootNote, scaleType, octaveRange);
             routeMessage(leftZTarget, leftZ, "left", rootNote, scaleType, octaveRange);
+
             routeMessage(leftGrabTarget, leftHand.grabStrength, "left", rootNote, scaleType, octaveRange);
             routeMessage(leftPinchTarget, leftHand.pinchStrength, "left", rootNote, scaleType, octaveRange);
             processFingers(leftHand, "left", minY, maxY, rootNote, scaleType, octaveRange, lThumb, lIndex, lMiddle, lRing, lPinky);
@@ -184,38 +199,24 @@ public:
             rightX = normalize(rightHand.currentHandPositionX, minX, maxX, sensitivity);
             rightY = normalize(rightHand.currentHandPositionY, minY, maxY, sensitivity);
             rightZ = 1.0f - normalize(rightHand.currentHandPositionZ, minZ, maxZ, sensitivity);
+            float rightRoll = normalize(rightHand.currentWristRotation, 0.0f, 1.0f, sensitivity);
+            routeMessage(rightRollTarget, 1.0f - rightRoll, "right", rootNote, scaleType, octaveRange);
 
             routeMessage(rightXTarget, rightX, "right", rootNote, scaleType, octaveRange);
             routeMessage(rightYTarget, rightY, "right", rootNote, scaleType, octaveRange);
             routeMessage(rightZTarget, rightZ, "right", rootNote, scaleType, octaveRange);
+
             routeMessage(rightGrabTarget, rightHand.grabStrength, "right", rootNote, scaleType, octaveRange);
             routeMessage(rightPinchTarget, rightHand.pinchStrength, "right", rootNote, scaleType, octaveRange);
             processFingers(rightHand, "right", minY, maxY, rootNote, scaleType, octaveRange, rThumb, rIndex, rMiddle, rRing, rPinky);
         }
-
     }
-    juce::OSCSender sender;
-
-    std::atomic<float> liveVolume{ -1.0f };
-    std::atomic<float> livePan{ -1.0f };
-    std::atomic<float> liveModulation{ -1.0f };
-    std::atomic<float> liveExpression{ -1.0f };
-    std::atomic<float> liveCutoff{ -1.0f };
-    std::atomic<float> liveResonance{ -1.0f };
-    std::atomic<float> liveAttack{ -1.0f };
-    std::atomic<float> liveRelease{ -1.0f };
-    std::atomic<float> liveReverb{ -1.0f };
-    std::atomic<float> liveChorus{ -1.0f };
-    std::atomic<float> liveVibrato{ -1.0f };
-    std::atomic<float> liveWaveform{ -1.0f };
 
     void routeMessage(GestureTarget target, float axisValue, juce::String handPrefix, int rootNote, int scaleType, int octaveRange) {
         if (target == GestureTarget::None || axisValue < 0.0f) return;
 
         if (target == GestureTarget::Volume) liveVolume.store(axisValue);
         else if (target == GestureTarget::Pan) livePan.store(axisValue);
-        else if (target == GestureTarget::Modulation) liveModulation.store(axisValue);
-        else if (target == GestureTarget::Expression) liveExpression.store(axisValue);
         else if (target == GestureTarget::Cutoff) liveCutoff.store(axisValue);
         else if (target == GestureTarget::Resonance) liveResonance.store(axisValue);
         else if (target == GestureTarget::Attack) liveAttack.store(axisValue);
@@ -224,25 +225,27 @@ public:
         else if (target == GestureTarget::Chorus) liveChorus.store(axisValue);
         else if (target == GestureTarget::Vibrato) liveVibrato.store(axisValue);
         else if (target == GestureTarget::Waveform) liveWaveform.store(axisValue);
+        else if (target == GestureTarget::Delay) liveDelay.store(axisValue);
+        else if (target == GestureTarget::Distortion) liveDistortion.store(axisValue);
+        else if (target == GestureTarget::Sustain) liveSustain.store(axisValue);
 
         juce::String paramName;
         switch (target) {
         case GestureTarget::Pitch:       paramName = "pitch"; break;
-        case GestureTarget::NoteTrigger: paramName = "note"; break;
+        case GestureTarget::NoteTrigger: paramName = "mute"; break;
         case GestureTarget::Volume:      paramName = "volume"; break;
-        case GestureTarget::Modulation:  paramName = "mod"; break;
         case GestureTarget::Cutoff:      paramName = "cutoff"; break;
         case GestureTarget::Resonance:   paramName = "res"; break;
         case GestureTarget::Vibrato:     paramName = "vib"; break;
         case GestureTarget::Pan:         paramName = "pan"; break;
-        case GestureTarget::Expression:  paramName = "expr"; break;
         case GestureTarget::Reverb:      paramName = "reverb"; break;
         case GestureTarget::Attack:      paramName = "attack"; break;
         case GestureTarget::Release:     paramName = "release"; break;
         case GestureTarget::Chorus:      paramName = "chorus"; break;
         case GestureTarget::Sustain:     paramName = "sustain"; break;
-        case GestureTarget::Portamento:  paramName = "portamento"; break;
-        case GestureTarget::Waveform:    paramName = "waveform"; break; 
+        case GestureTarget::Waveform:    paramName = "waveform"; break;
+        case GestureTarget::Delay:       paramName = "delay"; break;
+        case GestureTarget::Distortion:  paramName = "dist"; break;;
         default:                         paramName = "param"; break;
         }
 
@@ -265,13 +268,10 @@ public:
         }
     }
 
-
-
-
 private:
     ScaleQuantiser quantiser;
-
     AdaptiveEngine aiEngine;
+
     float prevLeftX = 0.0f, prevLeftY = 0.0f, prevLeftZ = 0.0f;
     float prevRightX = 0.0f, prevRightY = 0.0f, prevRightZ = 0.0f;
     float lastLeftSpeed = 0.0f;
@@ -283,9 +283,6 @@ private:
     int smoothWindow = 6;
     float smoothedLeftSpeed = 0.0f;
     float smoothedRightSpeed = 0.0f;
-
-
-    
 
     void processFingers(const HandData& hand, juce::String handPrefix, float minY, float maxY, int rootNote, int scaleType, int octaveRange,
         GestureTarget tThumb, GestureTarget tIndex, GestureTarget tMiddle, GestureTarget tRing, GestureTarget tPinky) {
