@@ -26,6 +26,9 @@
               file="Source/Helpers/ScaleQuantiser.h"/>
       </GROUP>
       <GROUP id="{3C4CCF07-A996-D733-F72A-AA0DE7042D0F}" name="UI">
+        <FILE id="VNM7ji" name="ChordBuilder.cpp" compile="1" resource="0"
+              file="Source/UI/ChordBuilder.cpp"/>
+        <FILE id="b8RUEA" name="ChordBuilder.h" compile="0" resource="0" file="Source/UI/ChordBuilder.h"/>
         <FILE id="K8mZiB" name="GuiComponents.h" compile="0" resource="0" file="Source/UI/GuiComponents.h"/>
         <FILE id="TQUJtH" name="HUDComponents.cpp" compile="1" resource="0"
               file="Source/UI/HUDComponents.cpp"/>
@@ -55,9 +58,26 @@
             file="Source/PluginEditor.cpp"/>
       <FILE id="ji42hQ" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
     </GROUP>
-    <GROUP id="{516892EA-5B9C-B8AA-9D81-681B52BF8D34}" name="Unit Tests">
-      <FILE id="f2l93a" name="SensorTests.cpp" compile="1" resource="0" file="Unit Tests/SensorTests.cpp"/>
-      <FILE id="hOzCjG" name="SensorTests.h" compile="0" resource="0" file="Unit Tests/SensorTests.h"/>
+    <GROUP id="{6CA80520-71F8-9CEA-D80F-1505741413A7}" name="Testing">
+      <GROUP id="{E0949C12-7020-AC58-3B8F-F54CA36DB430}" name="Integration Tests">
+        <FILE id="n5Mx5x" name="UITests.h" compile="0" resource="0" file="Testing/Integration Tests/UITests.h"/>
+      </GROUP>
+      <GROUP id="{9EA9196E-6FCF-71DD-65AC-3FC8004C2E5D}" name="Unit Tests">
+        <FILE id="tkQqRb" name="LeapServiceTests.h" compile="0" resource="0"
+              file="Testing/Unit Tests/LeapServiceTests.h"/>
+        <FILE id="dARlLu" name="LeapThreadTests.h" compile="0" resource="0"
+              file="Testing/Unit Tests/LeapThreadTests.h"/>
+        <FILE id="J0fAcM" name="MidiManagerTests.h" compile="0" resource="0"
+              file="Testing/Unit Tests/MidiManagerTests.h"/>
+        <FILE id="E2IgFQ" name="OscManagerTests.h" compile="0" resource="0"
+              file="Testing/Unit Tests/OscManagerTests.h"/>
+        <FILE id="NrVTam" name="PluginProcessorTests.h" compile="0" resource="0"
+              file="Testing/Unit Tests/PluginProcessorTests.h"/>
+        <FILE id="foaw4k" name="ScaleQuantiserTests.h" compile="0" resource="0"
+              file="Testing/Unit Tests/ScaleQuantiserTests.h"/>
+        <FILE id="UP8gag" name="SensorTests.cpp" compile="1" resource="0" file="Testing/Unit Tests/SensorTests.cpp"/>
+        <FILE id="TCXrbP" name="SensorTests.h" compile="0" resource="0" file="Testing/Unit Tests/SensorTests.h"/>
+      </GROUP>
     </GROUP>
   </MAINGROUP>
   <MODULES>

@@ -1,31 +1,46 @@
 #include "LeapService.h"
 
-LeapService::LeapService()
-{
+LeapService::LeapService() {
     LeapCreateConnection(nullptr, &connectionHandle);
     if (LeapOpenConnection(connectionHandle) == eLeapRS_Success) {
     }
 }
 
 LeapService::~LeapService() {
+    stop();
+}
+
+void LeapService::stop() {
     if (connectionHandle) {
         LeapCloseConnection(connectionHandle);
         LeapDestroyConnection(connectionHandle);
-    }
+        connectionHandle = nullptr; 
 }
 
 void LeapService::pollHandData(HandData& leftHand, HandData& rightHand, bool& isConnected) {
     LEAP_CONNECTION_MESSAGE message;
 
     while (LeapPollConnection(connectionHandle, 0, &message) == eLeapRS_Success) {
+
         if (message.type == eLeapEventType_Tracking) {
             convertLeapEventToHandData(message.tracking_event, leftHand, rightHand);
+            isConnected = true; 
         }
-        else if (message.type == eLeapEventType_DeviceLost) {
+        else if (message.type == eLeapEventType_Connection) {
+            LeapSetPolicyFlags(connectionHandle, eLeapPolicyFlag_BackgroundFrames, 0);
+            isConnected = true;
+        }
+        else if (message.type == eLeapEventType_ConnectionLost) {
             isConnected = false;
         }
         else if (message.type == eLeapEventType_Device) {
+            LeapSetPolicyFlags(connectionHandle, eLeapPolicyFlag_BackgroundFrames, 0);
             isConnected = true;
+        }
+        else if (message.type == eLeapEventType_DeviceLost) {
+            isConnected = false;
+            leftHand.isPresent = false;
+            rightHand.isPresent = false;
         }
     }
 }

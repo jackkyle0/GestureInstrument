@@ -34,7 +34,6 @@ struct MappingRow : public juce::Component {
         comboBox.addItem("Pan", 13);
         comboBox.addItem("Reverb", 14);
         comboBox.addItem("Chorus", 15);
-        comboBox.addItem("Sustain", 16);
 
         if (isOSCMode) {
             comboBox.addItem("Waveform", 18);
@@ -45,6 +44,7 @@ struct MappingRow : public juce::Component {
             comboBox.addItem("Modulation", 5);
             comboBox.addItem("Expression", 6);
             comboBox.addItem("Breath", 7);
+            comboBox.addItem("Sustain", 16);
             comboBox.addItem("Portamento", 17);
         }
 

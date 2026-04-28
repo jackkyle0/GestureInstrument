@@ -9,10 +9,12 @@ public:
     LeapService();
     ~LeapService();
 
+    void stop();
+
     void pollHandData(HandData& leftHand, HandData& rightHand, bool& isSensorConnected);
+    void convertLeapEventToHandData(const LEAP_TRACKING_EVENT* event, HandData& leftHand, HandData& rightHand);
 
 private:
     LEAP_CONNECTION connectionHandle;
 
-    void convertLeapEventToHandData(const LEAP_TRACKING_EVENT* event, HandData& leftHand, HandData& rightHand);
 };

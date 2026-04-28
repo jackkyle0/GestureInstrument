@@ -149,11 +149,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Helpers\LeapService.cpp"/>
+    <ClCompile Include="..\..\Source\UI\ChordBuilder.cpp"/>
     <ClCompile Include="..\..\Source\UI\HUDComponents.cpp"/>
     <ClCompile Include="..\..\Source\UI\SettingsComponent.cpp"/>
     <ClCompile Include="..\..\Source\PluginProcessor.cpp"/>
     <ClCompile Include="..\..\Source\PluginEditor.cpp"/>
-    <ClCompile Include="..\..\Unit Tests\SensorTests.cpp"/>
+    <ClCompile Include="..\..\Testing\Unit Tests\SensorTests.cpp"/>
     <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -2964,6 +2965,7 @@
     <ClInclude Include="..\..\Source\Helpers\LeapThread.h"/>
     <ClInclude Include="..\..\Source\Helpers\MusicalRangeMode.h"/>
     <ClInclude Include="..\..\Source\Helpers\ScaleQuantiser.h"/>
+    <ClInclude Include="..\..\Source\UI\ChordBuilder.h"/>
     <ClInclude Include="..\..\Source\UI\GuiComponents.h"/>
     <ClInclude Include="..\..\Source\UI\HUDComponents.h"/>
     <ClInclude Include="..\..\Source\UI\SettingsComponent.h"/>
@@ -2975,7 +2977,14 @@
     <ClInclude Include="..\..\Source\OSC\OscManager.h"/>
     <ClInclude Include="..\..\Source\PluginProcessor.h"/>
     <ClInclude Include="..\..\Source\PluginEditor.h"/>
-    <ClInclude Include="..\..\Unit Tests\SensorTests.h"/>
+    <ClInclude Include="..\..\Testing\Integration Tests\UITests.h"/>
+    <ClInclude Include="..\..\Testing\Unit Tests\LeapServiceTests.h"/>
+    <ClInclude Include="..\..\Testing\Unit Tests\LeapThreadTests.h"/>
+    <ClInclude Include="..\..\Testing\Unit Tests\MidiManagerTests.h"/>
+    <ClInclude Include="..\..\Testing\Unit Tests\OscManagerTests.h"/>
+    <ClInclude Include="..\..\Testing\Unit Tests\PluginProcessorTests.h"/>
+    <ClInclude Include="..\..\Testing\Unit Tests\ScaleQuantiserTests.h"/>
+    <ClInclude Include="..\..\Testing\Unit Tests\SensorTests.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\buffers\juce_AudioChannelSet.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h"/>

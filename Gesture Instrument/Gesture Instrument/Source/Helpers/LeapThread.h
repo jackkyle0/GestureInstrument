@@ -11,7 +11,13 @@ public:
     }
 
     ~LeapThread() override {
-        stopThread(1000);
+        shutdown(); // Call our custom shutdown when destroyed
+    }
+
+    void shutdown() {
+        signalThreadShouldExit(); // 1. Signal the loop to break
+        leapService.stop();       // 2. Abort the USB poll so the thread unblocks
+        stopThread(3000);         // 3. Give it plenty of time to  die
     }
 
     void run() override {
@@ -23,7 +29,6 @@ public:
             // leapService.pollHandData will ONLY overwrite these if the USB queue has new data
             leapService.pollHandData(persistentLeft, persistentRight, persistentConnected);
 
-            // Lock and copy the persistent data to the shared memory 
             {
                 juce::ScopedLock sl(dataLock);
                 sharedLeft = persistentLeft;
@@ -31,7 +36,7 @@ public:
                 sharedConnected = persistentConnected;
             }
 
-            sleep(5); // polling rate
+            wait(5); // polling rate
         }
     }
 

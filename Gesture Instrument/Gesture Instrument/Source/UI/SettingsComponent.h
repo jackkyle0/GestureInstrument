@@ -19,6 +19,9 @@ public:
     juce::ComboBox gestureTypeSelector;
 
     std::function<void()> onPresetLoaded;
+    void refreshUI();
+
+
 
 private:
     GestureInstrumentAudioProcessor& audioProcessor;
@@ -27,7 +30,7 @@ private:
     juce::Label leftHandLabel{ "Left Hand", "Left Hand" };
     juce::Label rightHandLabel{ "Right Hand", "Right Hand" };
 
-    MappingRow leftXRow{ "X Axis n/(Side-to-side)", 99 };
+    MappingRow leftXRow{ "X Axis \n(Side-to-side)", 99 };
     MappingRow leftYRow{ "Y Axis (Height)", 2 };
     MappingRow leftZRow{ "Z Axis (Depth)", 99 };
     MappingRow leftWristRow{ "Wrist Rotation", 99 };
@@ -40,7 +43,7 @@ private:
     MappingRow leftRingRow{ "Ring", 99 };
     MappingRow leftPinkyRow{ "Pinky", 99 };
 
-    MappingRow rightXRow{ "X Axis (Side-to-side)", 99 };
+    MappingRow rightXRow{ "X Axis \n(Side-to-side)", 99 };
     MappingRow rightYRow{ "Y Axis (Height)", 2 };
     MappingRow rightZRow{ "Z Axis (Depth)", 10 };
     MappingRow rightWristRow{ "Wrist Rotation", 99 };
@@ -66,6 +69,30 @@ private:
     juce::File lastPresetDirectory{ juce::File::getSpecialLocation(juce::File::userDocumentsDirectory) };
 
     juce::ToggleButton mpeButton{ "Enable MPE" };
+    juce::ToggleButton adaptiveToggle{ "Enable Adaptive Interface" };
+
+    int getIdFromTarget(GestureTarget target);
+    GestureTarget getTargetFromId(int id);
+
+    juce::ToggleButton floorShadowToggle{ "Floor Shadow" };
+    juce::ToggleButton wallShadowToggle{ "Wall Shadow" };
+
+    juce::ToggleButton splitXAxisToggle{ "Split X-Axis" };
+
+
+    juce::Label mpeRoutingLabel{ "MPE", "MPE ROUTING:" };
+    juce::Label mpePitchLabel{ "Pitch", "Pitch Bend (Glide):" };
+    juce::ComboBox mpePitchSelector;
+    juce::Label mpeTimbreLabel{ "Timbre", "Timbre (Slide):" };
+    juce::ComboBox mpeTimbreSelector;
+    juce::Label mpePressureLabel{ "Pressure", "Pressure (Press):" };
+    juce::ComboBox mpePressureSelector;
+
+    juce::Label visualsLabel;
+    juce::Label standaloneLabel;
+
+   
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsComponent)
 };

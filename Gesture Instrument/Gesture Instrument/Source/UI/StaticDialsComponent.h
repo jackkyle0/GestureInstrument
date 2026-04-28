@@ -4,9 +4,7 @@
 
 class NiceDialLookAndFeel : public juce::LookAndFeel_V4 {
 public:
-    NiceDialLookAndFeel()
-    {
-    }
+    NiceDialLookAndFeel() {}
 
     void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
         const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider& slider) override {
@@ -56,6 +54,9 @@ public:
         setupDial(modDial, modLabel, "Modulation", 0.0f, 1.0f, audioProcessor.staticModulation, false);
         setupDial(exprDial, exprLabel, "Expression", 0.0f, 1.0f, audioProcessor.staticExpression, false);
 
+        setupDial(delayDial, delayLabel, "Delay Time", 0.0f, 1.0f, audioProcessor.staticDelay, false);
+        setupDial(distDial, distLabel, "Distortion", 0.0f, 1.0f, audioProcessor.staticDistortion, false);
+
         setupDial(cutoffDial, cutoffLabel, "Cutoff", 0.0f, 1.0f, audioProcessor.staticCutoff, false);
         setupDial(resDial, resLabel, "Resonance", 0.0f, 1.0f, audioProcessor.staticResonance, false);
         setupDial(attackDial, attackLabel, "Attack", 0.0f, 1.0f, audioProcessor.staticAttack, false);
@@ -70,7 +71,7 @@ public:
             if (audioProcessor.currentOutputMode == OutputMode::OSC_Only) {
                 audioProcessor.oscManager.routeMessage(
                     target, value, "global",
-                    audioProcessor.rootNote, audioProcessor.scaleType, audioProcessor.octaveRange
+                    audioProcessor.rootNote, audioProcessor.scaleType, audioProcessor.octaveRange, audioProcessor.currentRangeMode, audioProcessor.startNote, audioProcessor.endNote
                 );
             }
             };
@@ -83,14 +84,27 @@ public:
             audioProcessor.staticPan = (float)panDial.getValue();
             sendGlobalOSC(GestureTarget::Pan, audioProcessor.staticPan);
             };
+
+        delayDial.onValueChange = [this, sendGlobalOSC] {
+            audioProcessor.staticDelay = (float)delayDial.getValue();
+            sendGlobalOSC(GestureTarget::Delay, audioProcessor.staticDelay);
+            }; // <-- FIXED MISSING BRACKET
+
         modDial.onValueChange = [this, sendGlobalOSC] {
             audioProcessor.staticModulation = (float)modDial.getValue();
             sendGlobalOSC(GestureTarget::Modulation, audioProcessor.staticModulation);
             };
+
+        distDial.onValueChange = [this, sendGlobalOSC] {
+            audioProcessor.staticDistortion = (float)distDial.getValue();
+            sendGlobalOSC(GestureTarget::Distortion, audioProcessor.staticDistortion);
+            }; // <-- FIXED MISSING BRACKET
+
         exprDial.onValueChange = [this, sendGlobalOSC] {
             audioProcessor.staticExpression = (float)exprDial.getValue();
             sendGlobalOSC(GestureTarget::Expression, audioProcessor.staticExpression);
             };
+
         cutoffDial.onValueChange = [this, sendGlobalOSC] {
             audioProcessor.staticCutoff = (float)cutoffDial.getValue();
             sendGlobalOSC(GestureTarget::Cutoff, audioProcessor.staticCutoff);
@@ -134,11 +148,12 @@ public:
         stopTimer();
         setLookAndFeel(nullptr);
     }
+
     void paint(juce::Graphics& g) override {
         g.fillAll(juce::Colours::black.withAlpha(0.95f));
         g.setColour(juce::Colours::white);
         g.setFont(24.0f);
-        g.drawText("Static Base Parameters", getLocalBounds().removeFromTop(60), juce::Justification::centred);
+        g.drawText("Static Dials", getLocalBounds().removeFromTop(60), juce::Justification::centred);
     }
 
     void resized() override {
@@ -164,7 +179,17 @@ public:
                 s4.setBounds(a4.removeFromTop(rowH - 30).withSizeKeepingCentre(100, 100)); l4.setBounds(a4.withSizeKeepingCentre(100, 30));
             };
 
+        // Lay out the first row using the Volume and Pan, but use Mod/Expr for the layout math
         layoutRow(area.removeFromTop(rowH), volumeDial, volumeLabel, panDial, panLabel, modDial, modLabel, exprDial, exprLabel);
+
+        // Now physically move the Delay and Dist dials to the EXACT same spot as the Mod/Expr dials
+        delayDial.setBounds(modDial.getBounds());
+        delayLabel.setBounds(modLabel.getBounds());
+
+        distDial.setBounds(exprDial.getBounds());
+        distLabel.setBounds(exprLabel.getBounds());
+
+        // Continue with other rows...
         layoutRow(area.removeFromTop(rowH), cutoffDial, cutoffLabel, resDial, resLabel, attackDial, attackLabel, releaseDial, releaseLabel);
         layoutRow(area.removeFromTop(rowH), reverbDial, reverbLabel, chorusDial, chorusLabel, vibDial, vibLabel, waveDial, waveLabel);
     }
@@ -172,35 +197,57 @@ public:
     void timerCallback() override {
         bool isOsc = (audioProcessor.currentOutputMode == OutputMode::OSC_Only);
 
-        auto updateMotorizedDial = [&](juce::Slider& dial, std::atomic<float>& oscLive, std::atomic<float>& midiLive, float& staticVal) {
+        // Toggle OSC specific dials
+        delayDial.setVisible(isOsc);
+        delayLabel.setVisible(isOsc);
+        distDial.setVisible(isOsc);
+        distLabel.setVisible(isOsc);
+        waveDial.setVisible(isOsc);
+        waveLabel.setVisible(isOsc);
+
+        // Toggle MIDI specific dials
+        modDial.setVisible(!isOsc);
+        modLabel.setVisible(!isOsc);
+        exprDial.setVisible(!isOsc);
+        exprLabel.setVisible(!isOsc);
+
+        auto updateMotorizedDial = [&](juce::Slider& dial, std::atomic<float>* oscLive, std::atomic<float>* midiLive, float& staticVal) {
             if (dial.isMouseButtonDown()) {
                 staticVal = (float)dial.getValue();
                 return;
             }
 
-            float currentLive = isOsc ? oscLive.load() : midiLive.load();
+            float currentLive = -1.0f;
+            if (isOsc && oscLive != nullptr) currentLive = oscLive->load();
+            else if (!isOsc && midiLive != nullptr) currentLive = midiLive->load();
+
             if (currentLive >= 0.0f) {
                 dial.setValue(currentLive, juce::dontSendNotification);
+                staticVal = currentLive;
             }
             else {
                 dial.setValue(staticVal, juce::dontSendNotification);
             }
             };
 
-        updateMotorizedDial(volumeDial, audioProcessor.oscManager.liveVolume, audioProcessor.midiManager.liveVolume, audioProcessor.staticVolume);
-        updateMotorizedDial(panDial, audioProcessor.oscManager.livePan, audioProcessor.midiManager.livePan, audioProcessor.staticPan);
-        updateMotorizedDial(modDial, audioProcessor.oscManager.liveModulation, audioProcessor.midiManager.liveModulation, audioProcessor.staticModulation);
-        updateMotorizedDial(exprDial, audioProcessor.oscManager.liveExpression, audioProcessor.midiManager.liveExpression, audioProcessor.staticExpression);
+        updateMotorizedDial(volumeDial, &audioProcessor.oscManager.liveVolume, &audioProcessor.midiManager.liveVolume, audioProcessor.staticVolume);
+        updateMotorizedDial(panDial, &audioProcessor.oscManager.livePan, &audioProcessor.midiManager.livePan, audioProcessor.staticPan);
 
-        updateMotorizedDial(cutoffDial, audioProcessor.oscManager.liveCutoff, audioProcessor.midiManager.liveCutoff, audioProcessor.staticCutoff);
-        updateMotorizedDial(resDial, audioProcessor.oscManager.liveResonance, audioProcessor.midiManager.liveResonance, audioProcessor.staticResonance);
-        updateMotorizedDial(attackDial, audioProcessor.oscManager.liveAttack, audioProcessor.midiManager.liveAttack, audioProcessor.staticAttack);
-        updateMotorizedDial(releaseDial, audioProcessor.oscManager.liveRelease, audioProcessor.midiManager.liveRelease, audioProcessor.staticRelease);
+        updateMotorizedDial(delayDial, &audioProcessor.oscManager.liveDelay, nullptr, audioProcessor.staticDelay);
+        updateMotorizedDial(distDial, &audioProcessor.oscManager.liveDistortion, nullptr, audioProcessor.staticDistortion);
 
-        updateMotorizedDial(reverbDial, audioProcessor.oscManager.liveReverb, audioProcessor.midiManager.liveReverb, audioProcessor.staticReverb);
-        updateMotorizedDial(chorusDial, audioProcessor.oscManager.liveChorus, audioProcessor.midiManager.liveChorus, audioProcessor.staticChorus);
-        updateMotorizedDial(vibDial, audioProcessor.oscManager.liveVibrato, audioProcessor.midiManager.liveVibrato, audioProcessor.staticVibrato);
-        updateMotorizedDial(waveDial, audioProcessor.oscManager.liveWaveform, audioProcessor.midiManager.liveWaveform, audioProcessor.staticWaveform);
+        updateMotorizedDial(cutoffDial, &audioProcessor.oscManager.liveCutoff, &audioProcessor.midiManager.liveCutoff, audioProcessor.staticCutoff);
+        updateMotorizedDial(resDial, &audioProcessor.oscManager.liveResonance, &audioProcessor.midiManager.liveResonance, audioProcessor.staticResonance);
+        updateMotorizedDial(attackDial, &audioProcessor.oscManager.liveAttack, &audioProcessor.midiManager.liveAttack, audioProcessor.staticAttack);
+        updateMotorizedDial(releaseDial, &audioProcessor.oscManager.liveRelease, &audioProcessor.midiManager.liveRelease, audioProcessor.staticRelease);
+
+        updateMotorizedDial(reverbDial, &audioProcessor.oscManager.liveReverb, &audioProcessor.midiManager.liveReverb, audioProcessor.staticReverb);
+        updateMotorizedDial(chorusDial, &audioProcessor.oscManager.liveChorus, &audioProcessor.midiManager.liveChorus, audioProcessor.staticChorus);
+        updateMotorizedDial(vibDial, &audioProcessor.oscManager.liveVibrato, &audioProcessor.midiManager.liveVibrato, audioProcessor.staticVibrato);
+        updateMotorizedDial(waveDial, &audioProcessor.oscManager.liveWaveform, &audioProcessor.midiManager.liveWaveform, audioProcessor.staticWaveform);
+
+        updateMotorizedDial(modDial, nullptr, &audioProcessor.midiManager.liveModulation, audioProcessor.staticModulation);
+        updateMotorizedDial(exprDial, nullptr, &audioProcessor.midiManager.liveExpression, audioProcessor.staticExpression);
     }
 
     juce::TextButton closeButton;
@@ -208,13 +255,21 @@ public:
 private:
     GestureInstrumentAudioProcessor& audioProcessor;
 
-    juce::Slider volumeDial; juce::Slider panDial; juce::Slider modDial; juce::Slider exprDial;
-    juce::Slider cutoffDial; juce::Slider resDial; juce::Slider attackDial; juce::Slider releaseDial;
-    juce::Slider reverbDial; juce::Slider chorusDial; juce::Slider vibDial; juce::Slider waveDial;
+    juce::Slider volumeDial; juce::Slider panDial;
+    juce::Slider modDial; juce::Slider exprDial;
+    juce::Slider delayDial; juce::Slider distDial;
+    juce::Slider cutoffDial; juce::Slider resDial;
+    juce::Slider attackDial; juce::Slider releaseDial;
+    juce::Slider reverbDial; juce::Slider chorusDial;
+    juce::Slider vibDial; juce::Slider waveDial;
 
-    juce::Label volumeLabel; juce::Label panLabel; juce::Label modLabel; juce::Label exprLabel;
-    juce::Label cutoffLabel; juce::Label resLabel; juce::Label attackLabel; juce::Label releaseLabel;
-    juce::Label reverbLabel; juce::Label chorusLabel; juce::Label vibLabel; juce::Label waveLabel;
+    juce::Label volumeLabel; juce::Label panLabel;
+    juce::Label modLabel; juce::Label exprLabel;
+    juce::Label delayLabel; juce::Label distLabel;
+    juce::Label cutoffLabel; juce::Label resLabel;
+    juce::Label attackLabel; juce::Label releaseLabel;
+    juce::Label reverbLabel; juce::Label chorusLabel;
+    juce::Label vibLabel; juce::Label waveLabel;
 
     void setupDial(juce::Slider& dial, juce::Label& label, juce::String name, float min, float max, float startVal, bool isWaveform) {
         addAndMakeVisible(dial);
@@ -240,6 +295,7 @@ private:
         label.setJustificationType(juce::Justification::centred);
         label.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
     }
+
     NiceDialLookAndFeel customDialLook;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StaticDialsComponent)
 };

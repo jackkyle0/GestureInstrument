@@ -5,6 +5,7 @@
 #include "../MIDI/GestureTarget.h"
 #include "../Helpers/ScaleQuantiser.h" 
 #include "../Helpers/AdaptiveEngine.h"
+#include "../Helpers/MusicalRangeMode.h"
 #include <functional>
 
 class OscManager {
@@ -168,7 +169,7 @@ public:
         GestureTarget rightXTarget, GestureTarget rightYTarget, GestureTarget rightZTarget, GestureTarget rightRollTarget,
         GestureTarget rightGrabTarget, GestureTarget rightPinchTarget,
         GestureTarget rThumb, GestureTarget rIndex, GestureTarget rMiddle, GestureTarget rRing, GestureTarget rPinky,
-        int rootNote, int scaleType, int octaveRange)
+        int rootNote, int scaleType, int octaveRange, MusicalRangeMode rangeMode, int startNote, int endNote, bool enableSplitXAxis)
     {
         auto normalize = [](float rawValue, float minBound, float maxBound, float sensitivityMultiplier) {
             float mappedValue = juce::jmap(rawValue, minBound, maxBound, 0.0f, 1.0f);
@@ -177,42 +178,78 @@ public:
             return juce::jlimit(0.0f, 1.0f, mappedValue);
             };
 
+        auto checkMapped = [&](GestureTarget search, GestureTarget tx, GestureTarget ty, GestureTarget tz, GestureTarget tr, GestureTarget tg, GestureTarget tp, GestureTarget ft, GestureTarget fi, GestureTarget fm, GestureTarget fri, GestureTarget fp) {
+            return search == tx || search == ty || search == tz || search == tr || search == tg || search == tp || search == ft || search == fi || search == fm || search == fri || search == fp;
+            };
+
+        float centerX = (minX + maxX) / 2.0f;
+        float leftMaxX = enableSplitXAxis ? centerX : maxX;
+        float rightMinX = enableSplitXAxis ? centerX : minX;
+
         float leftX = -1.0f, leftY = -1.0f, leftZ = -1.0f;
         if (leftHand.isPresent) {
-            leftX = normalize(leftHand.currentHandPositionX, minX, maxX, sensitivity);
+            // FIX: Use leftMaxX instead of maxX
+            leftX = normalize(leftHand.currentHandPositionX, minX, leftMaxX, sensitivity);
             leftY = normalize(leftHand.currentHandPositionY, minY, maxY, sensitivity);
             leftZ = 1.0f - normalize(leftHand.currentHandPositionZ, minZ, maxZ, sensitivity);
             float leftRoll = normalize(leftHand.currentWristRotation, 0.0f, 1.0f, sensitivity);
-            routeMessage(leftRollTarget, 1.0f - leftRoll, "left", rootNote, scaleType, octaveRange);
+            routeMessage(leftRollTarget, 1.0f - leftRoll, "left", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
 
-            routeMessage(leftXTarget, leftX, "left", rootNote, scaleType, octaveRange);
-            routeMessage(leftYTarget, leftY, "left", rootNote, scaleType, octaveRange);
-            routeMessage(leftZTarget, leftZ, "left", rootNote, scaleType, octaveRange);
+            routeMessage(leftXTarget, leftX, "left", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+            routeMessage(leftYTarget, leftY, "left", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+            routeMessage(leftZTarget, leftZ, "left", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
 
-            routeMessage(leftGrabTarget, leftHand.grabStrength, "left", rootNote, scaleType, octaveRange);
-            routeMessage(leftPinchTarget, leftHand.pinchStrength, "left", rootNote, scaleType, octaveRange);
-            processFingers(leftHand, "left", minY, maxY, rootNote, scaleType, octaveRange, lThumb, lIndex, lMiddle, lRing, lPinky);
+            routeMessage(leftGrabTarget, leftHand.grabStrength, "left", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+            routeMessage(leftPinchTarget, leftHand.pinchStrength, "left", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+            processFingers(leftHand, "left", minY, maxY, rootNote, scaleType, octaveRange, lThumb, lIndex, lMiddle, lRing, lPinky, rangeMode, startNote, endNote);
+            
+            // --- FIX: Change address to "/left/note" ---
+            bool leftMuteMapped = checkMapped(GestureTarget::NoteTrigger, leftXTarget, leftYTarget, leftZTarget, leftRollTarget, leftGrabTarget, leftPinchTarget, lThumb, lIndex, lMiddle, lRing, lPinky);
+            if (!leftMuteMapped && lastLeftMuteSent != 1.0f) {
+                juce::OSCMessage m("/left/note"); m.addFloat32(1.0f); sender.send(m);
+                lastLeftMuteSent = 1.0f;
+            }
+
+            bool leftVolMapped = checkMapped(GestureTarget::Volume, leftXTarget, leftYTarget, leftZTarget, leftRollTarget, leftGrabTarget, leftPinchTarget, lThumb, lIndex, lMiddle, lRing, lPinky);
+            if (!leftVolMapped && lastLeftVolSent != 1.0f) {
+                juce::OSCMessage m("/left/volume"); m.addFloat32(1.0f); sender.send(m);
+                lastLeftVolSent = 1.0f;
+            }
         }
 
         float rightX = -1.0f, rightY = -1.0f, rightZ = -1.0f;
         if (rightHand.isPresent) {
-            rightX = normalize(rightHand.currentHandPositionX, minX, maxX, sensitivity);
+            // FIX: Use rightMinX instead of minX
+            rightX = normalize(rightHand.currentHandPositionX, rightMinX, maxX, sensitivity);
             rightY = normalize(rightHand.currentHandPositionY, minY, maxY, sensitivity);
             rightZ = 1.0f - normalize(rightHand.currentHandPositionZ, minZ, maxZ, sensitivity);
             float rightRoll = normalize(rightHand.currentWristRotation, 0.0f, 1.0f, sensitivity);
-            routeMessage(rightRollTarget, 1.0f - rightRoll, "right", rootNote, scaleType, octaveRange);
+            routeMessage(rightRollTarget, 1.0f - rightRoll, "right", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
 
-            routeMessage(rightXTarget, rightX, "right", rootNote, scaleType, octaveRange);
-            routeMessage(rightYTarget, rightY, "right", rootNote, scaleType, octaveRange);
-            routeMessage(rightZTarget, rightZ, "right", rootNote, scaleType, octaveRange);
+            routeMessage(rightXTarget, rightX, "right", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+            routeMessage(rightYTarget, rightY, "right", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+            routeMessage(rightZTarget, rightZ, "right", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
 
-            routeMessage(rightGrabTarget, rightHand.grabStrength, "right", rootNote, scaleType, octaveRange);
-            routeMessage(rightPinchTarget, rightHand.pinchStrength, "right", rootNote, scaleType, octaveRange);
-            processFingers(rightHand, "right", minY, maxY, rootNote, scaleType, octaveRange, rThumb, rIndex, rMiddle, rRing, rPinky);
+            routeMessage(rightGrabTarget, rightHand.grabStrength, "right", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+            routeMessage(rightPinchTarget, rightHand.pinchStrength, "right", rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+            processFingers(rightHand, "right", minY, maxY, rootNote, scaleType, octaveRange, rThumb, rIndex, rMiddle, rRing, rPinky, rangeMode, startNote, endNote);
+            
+            // --- FIX: Change address to "/right/note" ---
+            bool rightMuteMapped = checkMapped(GestureTarget::NoteTrigger, rightXTarget, rightYTarget, rightZTarget, rightRollTarget, rightGrabTarget, rightPinchTarget, rThumb, rIndex, rMiddle, rRing, rPinky);
+            if (!rightMuteMapped && lastRightMuteSent != 1.0f) {
+                juce::OSCMessage m("/right/note"); m.addFloat32(1.0f); sender.send(m);
+                lastRightMuteSent = 1.0f;
+            }
+
+            bool rightVolMapped = checkMapped(GestureTarget::Volume, rightXTarget, rightYTarget, rightZTarget, rightRollTarget, rightGrabTarget, rightPinchTarget, rThumb, rIndex, rMiddle, rRing, rPinky);
+            if (!rightVolMapped && lastRightVolSent != 1.0f) {
+                juce::OSCMessage m("/right/volume"); m.addFloat32(1.0f); sender.send(m);
+                lastRightVolSent = 1.0f;
+            }
         }
     }
 
-    void routeMessage(GestureTarget target, float axisValue, juce::String handPrefix, int rootNote, int scaleType, int octaveRange) {
+    void routeMessage(GestureTarget target, float axisValue, juce::String handPrefix, int rootNote, int scaleType, int octaveRange, MusicalRangeMode mode, int startNote, int endNote) {
         if (target == GestureTarget::None || axisValue < 0.0f) return;
 
         if (target == GestureTarget::Volume) liveVolume.store(axisValue);
@@ -227,12 +264,11 @@ public:
         else if (target == GestureTarget::Waveform) liveWaveform.store(axisValue);
         else if (target == GestureTarget::Delay) liveDelay.store(axisValue);
         else if (target == GestureTarget::Distortion) liveDistortion.store(axisValue);
-        else if (target == GestureTarget::Sustain) liveSustain.store(axisValue);
 
         juce::String paramName;
         switch (target) {
         case GestureTarget::Pitch:       paramName = "pitch"; break;
-        case GestureTarget::NoteTrigger: paramName = "mute"; break;
+        case GestureTarget::NoteTrigger: paramName = "note"; break;
         case GestureTarget::Volume:      paramName = "volume"; break;
         case GestureTarget::Cutoff:      paramName = "cutoff"; break;
         case GestureTarget::Resonance:   paramName = "res"; break;
@@ -242,7 +278,6 @@ public:
         case GestureTarget::Attack:      paramName = "attack"; break;
         case GestureTarget::Release:     paramName = "release"; break;
         case GestureTarget::Chorus:      paramName = "chorus"; break;
-        case GestureTarget::Sustain:     paramName = "sustain"; break;
         case GestureTarget::Waveform:    paramName = "waveform"; break;
         case GestureTarget::Delay:       paramName = "delay"; break;
         case GestureTarget::Distortion:  paramName = "dist"; break;;
@@ -252,21 +287,72 @@ public:
         juce::String address = "/" + handPrefix + "/" + paramName;
 
         if (target == GestureTarget::Pitch) {
-            float minNote = 48.0f;
-            float maxNote = 48.0f + (octaveRange * 12.0f);
+            float minNote, maxNote;
+            if (mode == MusicalRangeMode::OctaveRange) {
+                minNote = (float)startNote + rootNote;
+                maxNote = minNote + (octaveRange * 12.0f);
+            }
+            else {
+                minNote = (float)startNote;
+                maxNote = (float)endNote;
+                if (minNote > maxNote) std::swap(minNote, maxNote);
+            }
             float exactNote = juce::jmap(axisValue, 0.0f, 1.0f, minNote, maxNote);
-            int targetNote = quantiser.getQuantisedNote(exactNote / 127.0f, rootNote, scaleType);
 
             juce::OSCMessage msg(address);
-            msg.addFloat32((float)targetNote);
+
+            // --- BYPASS QUANTISER FOR THEREMIN MODE ---
+            if (scaleType == 12) {
+                // Send the exact continuous decimal (e.g., 60.452)
+                msg.addFloat32(exactNote);
+            }
+            else {
+                // Snap to scale and send whole integer (e.g., 60.0)
+                int targetNote = quantiser.getQuantisedNote(exactNote / 127.0f, rootNote, scaleType);
+                msg.addFloat32((float)targetNote);
+            }
+
             sender.send(msg);
         }
         else {
+            // --- NEW: Update memory if a physical gesture is mapped ---
+            if (target == GestureTarget::NoteTrigger) {
+                if (handPrefix == "left") lastLeftMuteSent = axisValue;
+                else lastRightMuteSent = axisValue;
+            }
+            else if (target == GestureTarget::Volume) {
+                if (handPrefix == "left") lastLeftVolSent = axisValue;
+                else lastRightVolSent = axisValue;
+            }
+
+            // --- THIS KEEPS VOLUME, NOTE TRIGGERS, AND EVERYTHING ELSE ALIVE ---
             juce::OSCMessage msg(address);
             msg.addFloat32(axisValue);
             sender.send(msg);
         }
     }
+
+    void updateCustomScale(std::vector<int> newScale) {
+        quantiser.customIntervals = newScale;
+    }
+
+    void panicLeft() {
+        // Changed to "note" so Pure Data actually closes the envelope!
+        juce::OSCMessage n("/left/note");
+        n.addFloat32(0.0f);
+        sender.send(n);
+        lastLeftMuteSent = 0.0f; // Update memory
+    }
+
+    void panicRight() {
+        // Changed to "note"
+        juce::OSCMessage n("/right/note");
+        n.addFloat32(0.0f);
+        sender.send(n);
+        lastRightMuteSent = 0.0f; // Update memory
+    }
+
+
 
 private:
     ScaleQuantiser quantiser;
@@ -285,15 +371,23 @@ private:
     float smoothedRightSpeed = 0.0f;
 
     void processFingers(const HandData& hand, juce::String handPrefix, float minY, float maxY, int rootNote, int scaleType, int octaveRange,
-        GestureTarget tThumb, GestureTarget tIndex, GestureTarget tMiddle, GestureTarget tRing, GestureTarget tPinky) {
+        GestureTarget tThumb, GestureTarget tIndex, GestureTarget tMiddle, GestureTarget tRing, GestureTarget tPinky, MusicalRangeMode rangeMode, int startNote, int endNote) {
         auto getFingerVal = [&](int fingerIndex) {
             return juce::jlimit(0.0f, 1.0f, juce::jmap(hand.fingers[fingerIndex].tipY, minY, maxY, 0.0f, 1.0f));
             };
 
-        routeMessage(tThumb, getFingerVal(0), handPrefix, rootNote, scaleType, octaveRange);
-        routeMessage(tIndex, getFingerVal(1), handPrefix, rootNote, scaleType, octaveRange);
-        routeMessage(tMiddle, getFingerVal(2), handPrefix, rootNote, scaleType, octaveRange);
-        routeMessage(tRing, getFingerVal(3), handPrefix, rootNote, scaleType, octaveRange);
-        routeMessage(tPinky, getFingerVal(4), handPrefix, rootNote, scaleType, octaveRange);
+        routeMessage(tThumb, getFingerVal(0), handPrefix, rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+        routeMessage(tIndex, getFingerVal(1), handPrefix, rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+        routeMessage(tMiddle, getFingerVal(2), handPrefix, rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+        routeMessage(tRing, getFingerVal(3), handPrefix, rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
+        routeMessage(tPinky, getFingerVal(4), handPrefix, rootNote, scaleType, octaveRange, rangeMode, startNote, endNote);
     }
+
+    private:
+        // --- NEW: State Trackers to prevent PD spam ---
+        float lastLeftMuteSent = -1.0f;
+        float lastRightMuteSent = -1.0f;
+        float lastLeftVolSent = -1.0f;
+        float lastRightVolSent = -1.0f;
+
 };

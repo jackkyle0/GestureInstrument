@@ -3,8 +3,12 @@
 #include "UI/HUDComponents.h"
 #include "Helpers/MusicalRangeMode.h"
 
+// ==============================================================================
+// 1. SETUP & TEARDOWN (Constructor / Destructor)
+// ==============================================================================
+
 GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(GestureInstrumentAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p), settingsPage(p), staticDialsPage(p), hud(p), virtualCursor(p),
+    : AudioProcessorEditor(&p), audioProcessor(p), settingsPage(p), staticDialsPage(p), hud(p), virtualCursor(p), chordBuilderPage(p),
     xMinControl("Min Width", -350.0f, 0.0f, p.minWidthThreshold),
     xMaxControl("Max Width", 0.0f, 350.0f, p.maxWidthThreshold),
     yMinControl("Min Height", 50.0f, 275.0f, p.minHeightThreshold),
@@ -12,17 +16,216 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(Ges
     zMinControl("Back Depth", -225.0f, 0.0f, p.minDepthThreshold),
     zMaxControl("Front Depth", 0.0f, 225.0f, p.maxDepthThreshold)
 {
+    // ======================================================
+    // CORE VISUALS & ENGINE
+    // ======================================================
     addAndMakeVisible(hud);
-    addAndMakeVisible(calibrationOverlay);
-    calibrationOverlay.setVisible(false);
+    addAndMakeVisible(virtualCursor);
+    virtualCursor.setAlwaysOnTop(true);
 
-    addAndMakeVisible(muteButton);
-    muteButton.button.setButtonText("Mute");
-    muteButton.button.setClickingTogglesState(true);
-    muteButton.button.onClick = [this] {
-        audioProcessor.globalMute.store(muteButton.button.getToggleState());
+    openGLContext.attachTo(*this);
+    openGLContext.setContinuousRepainting(false);
+
+    audioProcessor.oscManager.onStyleChanged = [this](float leftStyle, float rightStyle) {
+        juce::MessageManager::callAsync([this, leftStyle, rightStyle]() {
+            float maxStyle = std::max(leftStyle, rightStyle);
+            if (std::abs(currentStyle - maxStyle) > 0.01f) {
+                currentStyle = maxStyle;
+                hud.currentStyle = maxStyle;
+                repaint();
+            }
+            });
         };
 
+    // ======================================================
+    // TOP BAR: HARDWARE & VIEW CONTROLS
+    // ======================================================
+    addAndMakeVisible(connectionStatusLabel);
+    connectionStatusLabel.setText("Checking Sensor...", juce::dontSendNotification);
+    connectionStatusLabel.setJustificationType(juce::Justification::centredRight);
+    connectionStatusLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
+
+    addAndMakeVisible(maximizeButton);
+    maximizeButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
+    maximizeButton.onClick = [this] {
+        if (auto* wrapperWindow = getTopLevelComponent()) {
+            if (!isMaximized) {
+                previousSize = getLocalBounds();
+                previousPosition = wrapperWindow->getPosition();
+                auto monitorArea = getParentMonitorArea();
+                wrapperWindow->setTopLeftPosition(monitorArea.getPosition());
+                setSize(monitorArea.getWidth(), monitorArea.getHeight() - 50);
+                maximizeButton.setButtonText("Restore");
+                isMaximized = true;
+                // Right after you set isMaximized = true/false:
+                audioProcessor.isWindowMaximized.store(isMaximized);
+            }
+            else {
+                setSize(previousSize.getWidth(), previousSize.getHeight());
+                wrapperWindow->setTopLeftPosition(previousPosition);
+                maximizeButton.setButtonText("Maximize");
+                isMaximized = false;
+                // Right after you set isMaximized = true/false:
+                audioProcessor.isWindowMaximized.store(isMaximized);
+            }
+        }
+        };
+
+    addAndMakeVisible(showNoteNamesButton);
+    showNoteNamesButton.setButtonText("Show Notes");
+    showNoteNamesButton.setToggleState(audioProcessor.showNoteNames, juce::dontSendNotification);
+
+    showNoteNamesButton.setColour(juce::ToggleButton::textColourId, juce::Colours::white);
+    showNoteNamesButton.onClick = [this] {
+        audioProcessor.showNoteNames = showNoteNamesButton.getToggleState();
+        repaint();
+        };
+
+    // ======================================================
+    // TOP BAR: MUSICAL SETTINGS (KEY & SCALE)
+    // ======================================================
+    addAndMakeVisible(keyLabel);
+    keyLabel.setText("Key:", juce::dontSendNotification);
+    keyLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+
+    addAndMakeVisible(rootSelector);
+    rootSelector.addItemList({ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }, 1);
+    rootSelector.setSelectedId(p.rootNote + 1);
+    rootSelector.onChange = [this] { audioProcessor.rootNote = rootSelector.getSelectedId() - 1; };
+
+    addAndMakeVisible(scaleLabel);
+    scaleLabel.setText("Scale:", juce::dontSendNotification);
+    scaleLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+
+    addAndMakeVisible(scaleSelector);
+    scaleSelector.addItem("Chromatic", 1);
+    scaleSelector.addItem("Major", 2);
+    scaleSelector.addItem("Minor", 3);
+    scaleSelector.addItem("Major Pentatonic", 4);
+    scaleSelector.addItem("Minor Pentatonic", 5);
+    scaleSelector.addItem("Blues", 6);
+    scaleSelector.addItem("Dorian", 7);
+    scaleSelector.addItem("Mixolydian", 8);
+    scaleSelector.addItem("Lydian", 9);
+    scaleSelector.addItem("Phrygian", 10);
+    scaleSelector.addItem("Harmonic Minor", 11);
+    scaleSelector.addItem("Locrian", 12);
+    scaleSelector.addItem("Unquantised", 13);
+    scaleSelector.addItem("Custom", 14);
+    scaleSelector.setSelectedId(p.scaleType + 1);
+    scaleSelector.onChange = [this] {
+        audioProcessor.scaleType = scaleSelector.getSelectedId() - 1;
+        customScaleUI.setVisible(scaleSelector.getSelectedId() == 14);
+        repaint();
+        };
+
+    addAndMakeVisible(customScaleUI);
+    customScaleUI.setCustomScale(audioProcessor.customScaleIntervals);
+    customScaleUI.onScaleChanged = [this](std::vector<int> newScale) {
+        audioProcessor.customScaleIntervals = newScale;
+        audioProcessor.oscManager.updateCustomScale(newScale);
+        repaint();
+        };
+
+    // ======================================================
+    // TOP BAR: MUSICAL SETTINGS (RANGE)
+    // ======================================================
+    addAndMakeVisible(octaveLabel); // Functioning as the Range Mode label
+    octaveLabel.setText("Range:", juce::dontSendNotification);
+    octaveLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+
+    addAndMakeVisible(rangeModeSelector);
+    rangeModeSelector.addItem("Standard Range", 1);
+    rangeModeSelector.addItem("Custom Range", 2);
+
+
+    addAndMakeVisible(baseOctaveLabel);
+    baseOctaveLabel.setText("Start:", juce::dontSendNotification);
+    baseOctaveLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+
+    addAndMakeVisible(baseOctaveSelector);
+    baseOctaveSelector.addItem("Sub (0)", 2);
+    baseOctaveSelector.addItem("Low (1)", 3);
+    baseOctaveSelector.addItem("Mid-Low (2)", 4);
+    baseOctaveSelector.addItem("Standard (3)", 5);
+    baseOctaveSelector.addItem("Mid-High (4)", 6);
+    baseOctaveSelector.addItem("High (5)", 7);
+    baseOctaveSelector.addItem("Very High (6)", 8);
+    baseOctaveSelector.setSelectedId((p.startNote / 12) + 1, juce::dontSendNotification);
+    baseOctaveSelector.onChange = [this] {
+        audioProcessor.startNote = (baseOctaveSelector.getSelectedId() - 1) * 12;
+        startNoteSelector.setSelectedId(audioProcessor.startNote + 1, juce::dontSendNotification);
+        repaint();
+        };
+
+    addAndMakeVisible(octaveSelector);
+    octaveSelector.addItem("1 Octave", 1);
+    octaveSelector.addItem("2 Octaves", 2);
+    octaveSelector.addItem("3 Octaves", 3);
+    octaveSelector.addItem("4 Octaves", 4);
+    octaveSelector.addItem("5 Octaves", 5);
+    octaveSelector.addItem("6 Octaves", 6);
+    octaveSelector.setSelectedId(p.octaveRange > 0 ? p.octaveRange : 2, juce::dontSendNotification);
+    octaveSelector.onChange = [this] { audioProcessor.octaveRange = octaveSelector.getSelectedId(); };
+
+    addAndMakeVisible(startNoteSelector);
+    for (int i = 0; i <= 127; ++i) {
+        startNoteSelector.addItem(juce::MidiMessage::getMidiNoteName(i, true, true, 3), i + 1);
+    }
+    startNoteSelector.setSelectedId(audioProcessor.startNote + 1, juce::dontSendNotification);
+    startNoteSelector.onChange = [this] {
+        audioProcessor.startNote = startNoteSelector.getSelectedId() - 1;
+        baseOctaveSelector.setSelectedId((audioProcessor.startNote / 12) + 1, juce::dontSendNotification);
+        repaint();
+        };
+
+    addAndMakeVisible(endNoteSelector);
+    for (int i = 0; i <= 127; ++i) {
+        endNoteSelector.addItem(juce::MidiMessage::getMidiNoteName(i, true, true, 3), i + 1);
+    }
+    endNoteSelector.setSelectedId(audioProcessor.endNote + 1, juce::dontSendNotification);
+    endNoteSelector.onChange = [this] { audioProcessor.endNote = endNoteSelector.getSelectedId() - 1; };
+
+    // Range Master Logic
+    rangeModeSelector.onChange = [this] {
+        bool isCustom = rangeModeSelector.getSelectedId() == 2;
+        audioProcessor.currentRangeMode = isCustom ? MusicalRangeMode::SpecificNotes : MusicalRangeMode::OctaveRange;
+
+        // Note: octaveLabel is now the main row label, so it STAYS visible!
+        baseOctaveLabel.setVisible(!isCustom); // <-- ADD THIS LINE
+        baseOctaveSelector.setVisible(!isCustom);
+        octaveSelector.setVisible(!isCustom);
+        startNoteSelector.setVisible(isCustom);
+        endNoteSelector.setVisible(isCustom);
+
+        resized();
+        repaint();
+        };
+    rangeModeSelector.setSelectedId(audioProcessor.currentRangeMode == MusicalRangeMode::SpecificNotes ? 2 : 1, juce::NotificationType::sendNotificationSync);
+
+    // ======================================================
+    // BOTTOM BAR: PARAMETER CONTROLS
+    // ======================================================
+    addAndMakeVisible(xMinControl); xMinControl.slider.onValueChange = [this] { audioProcessor.minWidthThreshold = (float)xMinControl.slider.getValue(); };
+    addAndMakeVisible(xMaxControl); xMaxControl.slider.onValueChange = [this] { audioProcessor.maxWidthThreshold = (float)xMaxControl.slider.getValue(); };
+    addAndMakeVisible(yMinControl); yMinControl.slider.onValueChange = [this] { audioProcessor.minHeightThreshold = (float)yMinControl.slider.getValue(); };
+    addAndMakeVisible(yMaxControl); yMaxControl.slider.onValueChange = [this] { audioProcessor.maxHeightThreshold = (float)yMaxControl.slider.getValue(); };
+    addAndMakeVisible(zMinControl); zMinControl.slider.onValueChange = [this] { audioProcessor.minDepthThreshold = (float)zMinControl.slider.getValue(); };
+    addAndMakeVisible(zMaxControl); zMaxControl.slider.onValueChange = [this] { audioProcessor.maxDepthThreshold = (float)zMaxControl.slider.getValue(); };
+
+    addAndMakeVisible(muteButton);
+    muteButton.setToggleState(audioProcessor.globalMute.load(), juce::dontSendNotification);
+    muteButton.setColour(juce::ToggleButton::textColourId, juce::Colours::white); // Match the Show Notes color!
+
+    muteButton.onClick = [this] {
+        audioProcessor.globalMute.store(muteButton.getToggleState());
+        };
+
+    // ======================================================
+    // OVERLAYS & PAGES
+    // ======================================================
+    addAndMakeVisible(calibrationOverlay);
+    calibrationOverlay.setVisible(false);
     calibrationOverlay.onCancel = [this] { stopCalibration(false); };
 
     addAndMakeVisible(calibrateButton);
@@ -39,227 +242,134 @@ GestureInstrumentAudioProcessorEditor::GestureInstrumentAudioProcessorEditor(Ges
         audioProcessor.isVirtualMouse.store(isEditMode);
         };
 
-    addAndMakeVisible(connectionStatusLabel);
-    connectionStatusLabel.setText("Checking Sensor...", juce::dontSendNotification);
-    connectionStatusLabel.setJustificationType(juce::Justification::centredRight);
-    connectionStatusLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
-
-    addAndMakeVisible(xMinControl);
-    xMinControl.slider.onValueChange = [this] { audioProcessor.minWidthThreshold = (float)xMinControl.slider.getValue(); };
-    addAndMakeVisible(xMaxControl);
-    xMaxControl.slider.onValueChange = [this] { audioProcessor.maxWidthThreshold = (float)xMaxControl.slider.getValue(); };
-
-    addAndMakeVisible(yMinControl);
-    yMinControl.slider.onValueChange = [this] { audioProcessor.minHeightThreshold = (float)yMinControl.slider.getValue(); };
-    addAndMakeVisible(yMaxControl);
-    yMaxControl.slider.onValueChange = [this] { audioProcessor.maxHeightThreshold = (float)yMaxControl.slider.getValue(); };
-
-    addAndMakeVisible(zMinControl);
-    zMinControl.slider.onValueChange = [this] { audioProcessor.minDepthThreshold = (float)zMinControl.slider.getValue(); };
-    addAndMakeVisible(zMaxControl);
-    zMaxControl.slider.onValueChange = [this] { audioProcessor.maxDepthThreshold = (float)zMaxControl.slider.getValue(); };
-
-    addAndMakeVisible(staticDialsButton);
-    staticDialsButton.setButtonText("Static Dials");
-    staticDialsButton.onClick = [this] {
-        staticDialsPage.setVisible(true);
-
-        settingsButton.setVisible(false);
-        staticDialsButton.setVisible(false);
-        calibrateButton.setVisible(false);
-        editModeButton.setVisible(false);
-        connectionStatusLabel.setVisible(false);
-        showNoteNamesButton.setVisible(false);
-
-        rootSelector.setVisible(false);
-        scaleSelector.setVisible(false);
-        scaleLabel.setVisible(false);
-        rangeModeSelector.setVisible(false);
-        octaveSelector.setVisible(false);
-        octaveLabel.setVisible(false);
-        startNoteSelector.setVisible(false);
-        endNoteSelector.setVisible(false);
-
-        xMinControl.setVisible(false); xMaxControl.setVisible(false);
-        yMinControl.setVisible(false); yMaxControl.setVisible(false);
-        zMinControl.setVisible(false); zMaxControl.setVisible(false);
-        };
-
     addChildComponent(staticDialsPage);
     staticDialsPage.setVisible(false);
+    addAndMakeVisible(staticDialsButton);
+    staticDialsButton.setButtonText("Static Dials");
 
-    staticDialsPage.closeButton.onClick = [this] {
-        staticDialsPage.setVisible(false);
+    // --- DELETE THESE TWO LINES ---
+    // addChildComponent(settingsPage);
+    // settingsPage.setVisible(false);
 
-        settingsButton.setVisible(true);
-        staticDialsButton.setVisible(true);
-        calibrateButton.setVisible(true);
-        editModeButton.setVisible(true);
-        connectionStatusLabel.setVisible(true);
-        showNoteNamesButton.setVisible(true);
-
-        rootSelector.setVisible(true);
-        scaleSelector.setVisible(true);
-        scaleLabel.setVisible(true);
-        rangeModeSelector.setVisible(true);
-
-        xMinControl.setVisible(true); xMaxControl.setVisible(true);
-        yMinControl.setVisible(true); yMaxControl.setVisible(true);
-        zMinControl.setVisible(true); zMaxControl.setVisible(true);
-
-        rangeModeSelector.onChange();
-        };
+    // --- ADD THIS INSTEAD ---
+    settingsViewport.setViewedComponent(&settingsPage, false);
+    settingsViewport.setScrollBarsShown(true, false); // Vertical YES, Horizontal NO
+    addChildComponent(settingsViewport);
+    settingsViewport.setVisible(false);
 
     addAndMakeVisible(settingsButton);
     settingsButton.setButtonText("Settings");
-    settingsButton.onClick = [this] {
-        settingsPage.setVisible(true);
+    
 
+    addChildComponent(chordBuilderPage);
+    chordBuilderPage.setVisible(false);
+    addAndMakeVisible(chordBuilderButton);
+    chordBuilderButton.setButtonText("Chord Builder");
+
+    // Unified Menu Hiding Logic
+    auto hideMainMenu = [this]() {
         settingsButton.setVisible(false);
         staticDialsButton.setVisible(false);
         calibrateButton.setVisible(false);
         editModeButton.setVisible(false);
         connectionStatusLabel.setVisible(false);
         showNoteNamesButton.setVisible(false);
-
         rootSelector.setVisible(false);
         scaleSelector.setVisible(false);
+        keyLabel.setVisible(false);
         scaleLabel.setVisible(false);
         rangeModeSelector.setVisible(false);
+        baseOctaveLabel.setVisible(false); // <-- ADD THIS LINE
         octaveSelector.setVisible(false);
         octaveLabel.setVisible(false);
         startNoteSelector.setVisible(false);
         endNoteSelector.setVisible(false);
-
         xMinControl.setVisible(false); xMaxControl.setVisible(false);
         yMinControl.setVisible(false); yMaxControl.setVisible(false);
         zMinControl.setVisible(false); zMaxControl.setVisible(false);
+        maximizeButton.setVisible(false);
+        baseOctaveSelector.setVisible(false);
+        customScaleUI.setVisible(false);
+        chordBuilderButton.setVisible(false);
         };
 
-    settingsPage.closeButton.onClick = [this] {
-        settingsPage.setVisible(false);
-
+    auto showMainMenu = [this]() {
         settingsButton.setVisible(true);
         staticDialsButton.setVisible(true);
         calibrateButton.setVisible(true);
         editModeButton.setVisible(true);
         connectionStatusLabel.setVisible(true);
         showNoteNamesButton.setVisible(true);
-
         rootSelector.setVisible(true);
         scaleSelector.setVisible(true);
+        keyLabel.setVisible(true);
         scaleLabel.setVisible(true);
         rangeModeSelector.setVisible(true);
-
+        octaveLabel.setVisible(true);
         xMinControl.setVisible(true); xMaxControl.setVisible(true);
         yMinControl.setVisible(true); yMaxControl.setVisible(true);
         zMinControl.setVisible(true); zMaxControl.setVisible(true);
-
-        rangeModeSelector.onChange();
+        maximizeButton.setVisible(true);
+        scaleSelector.onChange();
+        chordBuilderButton.setVisible(true);
+        rangeModeSelector.onChange(); // Recalculates Custom UI & Range drop-downs automatically!
         };
 
+    staticDialsButton.onClick = [this, hideMainMenu] { staticDialsPage.setVisible(true); hideMainMenu(); };
+    staticDialsPage.closeButton.onClick = [this, showMainMenu] { staticDialsPage.setVisible(false); showMainMenu(); };
+    // Change your settings button clicks to this:
+    settingsButton.onClick = [this, hideMainMenu] { settingsViewport.setVisible(true); hideMainMenu(); };
+    settingsPage.closeButton.onClick = [this, showMainMenu] { settingsViewport.setVisible(false); showMainMenu(); };
+    // Change this:
+    chordBuilderButton.onClick = [this, hideMainMenu] { chordBuilderPage.setVisible(true); hideMainMenu(); };
+
+    // To this:
+    chordBuilderButton.onClick = [this, hideMainMenu] {
+        chordBuilderPage.refreshUI(); // <-- Forces the UI to unlock and sync data!
+        chordBuilderPage.setVisible(true);
+        hideMainMenu();
+        };
+    chordBuilderPage.closeButton.onClick = [this, showMainMenu] { chordBuilderPage.setVisible(false); showMainMenu(); };
     settingsPage.onPresetLoaded = [this] {
+        // 1. Force the UI dropdowns to match the loaded XML data
+        rootSelector.setSelectedId(audioProcessor.rootNote + 1, juce::dontSendNotification);
+        scaleSelector.setSelectedId(audioProcessor.scaleType + 1, juce::dontSendNotification);
+
+        rangeModeSelector.setSelectedId(audioProcessor.currentRangeMode == MusicalRangeMode::SpecificNotes ? 2 : 1, juce::dontSendNotification);
+
+        baseOctaveSelector.setSelectedId((audioProcessor.startNote / 12) + 1, juce::dontSendNotification);
+        octaveSelector.setSelectedId(audioProcessor.octaveRange > 0 ? audioProcessor.octaveRange : 2, juce::dontSendNotification);
+
+        startNoteSelector.setSelectedId(audioProcessor.startNote + 1, juce::dontSendNotification);
+        endNoteSelector.setSelectedId(audioProcessor.endNote + 1, juce::dontSendNotification);
+
+        // 2. Trigger the logic updates so visibility rules apply
+        scaleSelector.onChange();
         rangeModeSelector.onChange();
+
+        // 3. Refresh sub-menus and toggles
         settingsPage.refreshUI();
+        chordBuilderPage.refreshUI(); // <-- ADD THIS LINE HERE!
+        customScaleUI.setCustomScale(audioProcessor.customScaleIntervals);
+
+        showNoteNamesButton.setToggleState(audioProcessor.showNoteNames, juce::dontSendNotification);
+        muteButton.setToggleState(audioProcessor.globalMute.load(), juce::dontSendNotification);
+        // Check if the loaded preset wants the window maximized, and if we aren't already:
+        if (audioProcessor.isWindowMaximized.load() != isMaximized) {
+            maximizeButton.triggerClick();
+        }
         resized();
         repaint();
         };
 
-    addAndMakeVisible(rootSelector);
-    rootSelector.addItemList({ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" }, 1);
-    rootSelector.setSelectedId(p.rootNote + 1);
-    rootSelector.onChange = [this] { audioProcessor.rootNote = rootSelector.getSelectedId() - 1; };
-
-    addAndMakeVisible(scaleSelector);
-    scaleSelector.setText("Scale:", juce::dontSendNotification);
-    scaleSelector.addItem("Chromatic", 1);
-    scaleSelector.addItem("Major", 2);
-    scaleSelector.addItem("Minor", 3);
-    scaleSelector.addItem("Pentatonic", 4);
-    scaleSelector.setSelectedId(p.scaleType + 1);
-    scaleSelector.onChange = [this] { audioProcessor.scaleType = scaleSelector.getSelectedId() - 1; };
-
-    addAndMakeVisible(scaleLabel);
-    scaleLabel.setText("Key:", juce::dontSendNotification);
-    scaleLabel.attachToComponent(&rootSelector, true);
-    scaleLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-
-    addAndMakeVisible(rangeModeSelector);
-    rangeModeSelector.addItem("Standard Range", 1);
-    rangeModeSelector.addItem("Custom Range", 2);
-
-    addAndMakeVisible(startNoteSelector);
-    for (int i = 0; i <= 127; ++i) {
-        juce::String noteName = juce::MidiMessage::getMidiNoteName(i, true, true, 3);
-        startNoteSelector.addItem(noteName, i + 1);
-    }
-    startNoteSelector.setSelectedId(audioProcessor.startNote + 1, juce::dontSendNotification);
-    startNoteSelector.onChange = [this] { audioProcessor.startNote = startNoteSelector.getSelectedId() - 1; };
-
-    addAndMakeVisible(endNoteSelector);
-    for (int i = 0; i <= 127; ++i) {
-        juce::String noteName = juce::MidiMessage::getMidiNoteName(i, true, true, 3);
-        endNoteSelector.addItem(noteName, i + 1);
-    }
-    endNoteSelector.setSelectedId(audioProcessor.endNote + 1, juce::dontSendNotification);
-    endNoteSelector.onChange = [this] { audioProcessor.endNote = endNoteSelector.getSelectedId() - 1; };
-
-    addAndMakeVisible(octaveSelector);
-    octaveSelector.addItem("1 Octave", 1);
-    octaveSelector.addItem("2 Octaves", 2);
-    octaveSelector.addItem("3 Octaves", 3);
-    octaveSelector.addItem("4 Octaves", 4);
-    octaveSelector.setSelectedId(p.octaveRange > 0 ? p.octaveRange : 2, juce::dontSendNotification);
-    octaveSelector.onChange = [this] { audioProcessor.octaveRange = octaveSelector.getSelectedId(); };
-
-    addAndMakeVisible(octaveLabel);
-    octaveLabel.attachToComponent(&octaveSelector, true);
-    octaveLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-
-    rangeModeSelector.onChange = [this] {
-        bool isCustom = rangeModeSelector.getSelectedId() == 2;
-        audioProcessor.currentRangeMode = isCustom ? MusicalRangeMode::SpecificNotes : MusicalRangeMode::OctaveRange;
-        octaveSelector.setVisible(!isCustom);
-        octaveLabel.setVisible(!isCustom);
-        startNoteSelector.setVisible(isCustom);
-        endNoteSelector.setVisible(isCustom);
-        resized();
-        };
-
-    rangeModeSelector.setSelectedId(audioProcessor.currentRangeMode == MusicalRangeMode::SpecificNotes ? 2 : 1, juce::NotificationType::sendNotificationSync);
-
-    addAndMakeVisible(showNoteNamesButton);
-    showNoteNamesButton.setButtonText("Show Notes");
-    showNoteNamesButton.setToggleState(false, juce::dontSendNotification);
-    showNoteNamesButton.setColour(juce::ToggleButton::textColourId, juce::Colours::white);
-    showNoteNamesButton.onClick = [this] {
-        audioProcessor.showNoteNames = showNoteNamesButton.getToggleState();
-        repaint();
-        };
-
-    audioProcessor.oscManager.onStyleChanged = [this](float leftStyle, float rightStyle) {
-        juce::MessageManager::callAsync([this, leftStyle, rightStyle]() {
-            float maxStyle = std::max(leftStyle, rightStyle);
-            if (std::abs(currentStyle - maxStyle) > 0.01f) {
-                currentStyle = maxStyle;
-                repaint();
-            }
-            });
-        };
-
+    // ======================================================
+    // FINAL WINDOW SETUP
+    // ======================================================
     setResizable(true, true);
     setResizeLimits(800, 600, 3000, 2000);
     setOpaque(true);
-
-    openGLContext.attachTo(*this);
-    openGLContext.setContinuousRepainting(false);
-
     setSize(1500, 700);
     startTimerHz(60);
-
-    addChildComponent(settingsPage);
-    settingsPage.setVisible(false);
-    addAndMakeVisible(virtualCursor);
 }
 
 GestureInstrumentAudioProcessorEditor::~GestureInstrumentAudioProcessorEditor() {
@@ -267,19 +377,9 @@ GestureInstrumentAudioProcessorEditor::~GestureInstrumentAudioProcessorEditor() 
     stopTimer();
 }
 
-juce::Point<float> GestureInstrumentAudioProcessorEditor::projectPoint(Point3D p) {
-    float worldY = p.y - 250.0f;
-    float adjustedZ = -p.z;
-
-    float perspective = fov / (fov + adjustedZ + camDist);
-    float zoom = ((float)getHeight() * 0.55f) / 500.0f;
-    float finalScale = perspective * zoom * 2.5f;
-
-    float x2d = p.x * finalScale + centerScreen.x;
-    float y2d = -worldY * finalScale + centerScreen.y;
-
-    return juce::Point<float>(x2d, y2d);
-}
+// ==============================================================================
+// 2. MAIN RENDERING & LAYOUT (Paint & Resized)
+// ==============================================================================
 
 void GestureInstrumentAudioProcessorEditor::paint(juce::Graphics& g) {
     juce::ColourGradient bgGradient(
@@ -292,141 +392,83 @@ void GestureInstrumentAudioProcessorEditor::paint(juce::Graphics& g) {
 
     centerScreen = getLocalBounds().getCentre().toFloat();
 
+    // 3D Scene Only! Everything else is handled by HUDComponents.
     draw3DGrid(g);
     draw3DHand(g, audioProcessor.leftHand, juce::Colours::cyan);
     draw3DHand(g, audioProcessor.rightHand, juce::Colours::magenta);
     drawCalibrationBox3D(g);
-
-    if (menuGestureTimer > 0.0f && !menuGestureFired && !isCalibrating) {
-        float requiredTime = (float)settingsPage.gestureTimerSlider.getValue();
-        float progress = menuGestureTimer / requiredTime;
-
-        g.setColour(juce::Colours::orange);
-        g.setFont(18.0f);
-        g.drawText(isEditMode ? "Closing Virtual Mouse..." : "Opening Virtual Mouse...",
-            (int)centerScreen.x - 150, (int)centerScreen.y - 60, 300, 30, juce::Justification::centred);
-
-        float radius = 40.0f;
-        juce::Path p;
-        p.addCentredArc(centerScreen.x, centerScreen.y, radius, radius, 0.0f, 0.0f, juce::MathConstants<float>::twoPi * progress, true);
-        g.strokePath(p, juce::PathStrokeType(4.0f));
-    }
-
-    auto indicatorColor = juce::Colours::skyblue.interpolatedWith(juce::Colours::indianred, currentStyle);
-    g.setColour(indicatorColor);
-
-    auto area = getLocalBounds().removeFromTop(40).reduced(150, 10);
-    g.fillRoundedRectangle(area.toFloat(), 5.0f);
-
-    g.setColour(juce::Colours::white);
-    juce::String label = "INTENT: " + juce::String(currentStyle * 100.0f, 0) + "% AGGRESSIVE";
-    g.drawText(label, area, juce::Justification::centred);
-
-    float sustainVal = -1.0f;
-    float portamentoVal = -1.0f;
-
-    if (audioProcessor.currentOutputMode == OutputMode::MIDI_Only) {
-        sustainVal = audioProcessor.midiManager.liveSustain.load();
-        portamentoVal = audioProcessor.midiManager.livePortamento.load();
-    }
-    else if (audioProcessor.currentOutputMode == OutputMode::OSC_Only) {
-        sustainVal = audioProcessor.oscManager.liveSustain.load();
-    }
-
-    auto isLeftHand = [&](GestureTarget t) {
-        return audioProcessor.leftXTarget == t || audioProcessor.leftYTarget == t ||
-            audioProcessor.leftZTarget == t || audioProcessor.leftRollTarget == t ||
-            audioProcessor.leftGrabTarget == t || audioProcessor.leftPinchTarget == t ||
-            audioProcessor.leftThumbTarget == t || audioProcessor.leftIndexTarget == t ||
-            audioProcessor.leftMiddleTarget == t || audioProcessor.leftRingTarget == t ||
-            audioProcessor.leftPinkyTarget == t;
-        };
-
-    auto isRightHand = [&](GestureTarget t) {
-        return audioProcessor.rightXTarget == t || audioProcessor.rightYTarget == t ||
-            audioProcessor.rightZTarget == t || audioProcessor.rightRollTarget == t ||
-            audioProcessor.rightGrabTarget == t || audioProcessor.rightPinchTarget == t ||
-            audioProcessor.rightThumbTarget == t || audioProcessor.rightIndexTarget == t ||
-            audioProcessor.rightMiddleTarget == t || audioProcessor.rightRingTarget == t ||
-            audioProcessor.rightPinkyTarget == t;
-        };
-
-    auto drawStaticBadge = [&](juce::String name, float value, juce::Rectangle<int> drawArea, bool isMappedToThisHand) {
-        bool isOn = isMappedToThisHand && (value > 0.5f);
-
-        juce::Colour badgeCol = isOn ? juce::Colours::orange : juce::Colours::darkgrey;
-
-        float fillAlpha = isMappedToThisHand ? 0.2f : 0.05f;
-        float lineAlpha = isMappedToThisHand ? 1.0f : 0.3f;
-
-        g.setColour(badgeCol.withAlpha(fillAlpha));
-        g.fillRoundedRectangle(drawArea.toFloat(), 6.0f);
-
-        g.setColour(badgeCol.withAlpha(lineAlpha));
-        g.drawRoundedRectangle(drawArea.toFloat(), 2.0f, 6.0f);
-
-        g.setColour(juce::Colours::white.withAlpha(lineAlpha));
-        g.setFont(juce::Font(14.0f, juce::Font::bold));
-
-        g.drawText(name + (isOn ? ": ON" : ": OFF"), drawArea, juce::Justification::centred);
-        };
-
-    int badgeW = 160;
-    int badgeH = 35;
-    int padding = 10;
-    int baseY = getHeight() - badgeH - 140;
-
-    int leftX = 130;
-    int rightX = getWidth() - badgeW - 130;
-
-    bool susMappedLeft = isLeftHand(GestureTarget::Sustain);
-    bool susMappedRight = isRightHand(GestureTarget::Sustain);
-    drawStaticBadge("SUSTAIN", sustainVal, juce::Rectangle<int>(leftX, baseY, badgeW, badgeH), susMappedLeft);
-    drawStaticBadge("SUSTAIN", sustainVal, juce::Rectangle<int>(rightX, baseY, badgeW, badgeH), susMappedRight);
-
-    if (audioProcessor.currentOutputMode == OutputMode::MIDI_Only) {
-        bool portMappedLeft = isLeftHand(GestureTarget::Portamento);
-        bool portMappedRight = isRightHand(GestureTarget::Portamento);
-        int portY = baseY - badgeH - padding; 
-
-        drawStaticBadge("PORTAMENTO", portamentoVal, juce::Rectangle<int>(leftX, portY, badgeW, badgeH), portMappedLeft);
-        drawStaticBadge("PORTAMENTO", portamentoVal, juce::Rectangle<int>(rightX, portY, badgeW, badgeH), portMappedRight);
-    }
 }
 
 void GestureInstrumentAudioProcessorEditor::resized() {
     calibrationOverlay.setBounds(getLocalBounds());
-    settingsPage.setBounds(getLocalBounds());
+    settingsViewport.setBounds(getLocalBounds());
     staticDialsPage.setBounds(getLocalBounds());
     virtualCursor.setBounds(getLocalBounds());
+    chordBuilderPage.setBounds(getLocalBounds());
+
+    settingsPage.setBounds(0, 0, getWidth(), 900);
 
     int margin = 10;
     int topBarY = margin;
     int buttonW = 120;
     int controlHeight = 30;
 
-    rootSelector.setBounds(margin + 40, topBarY, 60, controlHeight);
-    scaleSelector.setBounds(rootSelector.getRight() + 10, topBarY, 120, controlHeight);
+    // ======================================================
+    // ROW 1: KEY & SCALE
+    // ======================================================
+    keyLabel.setBounds(margin, topBarY, 35, controlHeight);
+    rootSelector.setBounds(keyLabel.getRight() + 5, topBarY, 60, controlHeight);
 
+    scaleLabel.setBounds(rootSelector.getRight() + 20, topBarY, 45, controlHeight);
+    scaleSelector.setBounds(scaleLabel.getRight() + 5, topBarY, 130, controlHeight);
+
+    customScaleUI.setBounds((getWidth() / 2) - 200, topBarY + 40, 400, controlHeight);
+    // ======================================================
+    // ROW 2: RANGE TOOLS
+    // ======================================================
     int row2Y = topBarY + controlHeight + 5;
-    rangeModeSelector.setBounds(margin, row2Y, 140, controlHeight);
 
-    int octX = rangeModeSelector.getRight() + 10;
-    octaveSelector.setBounds(octX, row2Y, 100, controlHeight);
-    startNoteSelector.setBounds(octX, row2Y, 85, controlHeight);
-    endNoteSelector.setBounds(startNoteSelector.getRight() + 5, row2Y, 85, controlHeight);
+    // Label is now properly placed right in front of the Range Mode
+    octaveLabel.setBounds(margin, row2Y, 55, controlHeight);
+    rangeModeSelector.setBounds(octaveLabel.getRight() + 5, row2Y, 140, controlHeight);
 
+    int currentX = rangeModeSelector.getRight() + 20;
+
+    if (audioProcessor.currentRangeMode == MusicalRangeMode::OctaveRange) {
+        // Position the new label
+        baseOctaveLabel.setBounds(currentX, row2Y, 40, controlHeight);
+
+        // Push the selector to the right of the label and make it 110px wide
+        baseOctaveSelector.setBounds(baseOctaveLabel.getRight() + 5, row2Y, 110, controlHeight);
+
+        octaveSelector.setBounds(baseOctaveSelector.getRight() + 10, row2Y, 100, controlHeight);
+    }
+    else {
+        startNoteSelector.setBounds(currentX, row2Y, 85, controlHeight);
+        endNoteSelector.setBounds(startNoteSelector.getRight() + 10, row2Y, 85, controlHeight);
+    }
+
+    // ======================================================
+    // TOP BUTTONS (CENTERED & RIGHT)
+    // ======================================================
     int centerX = getWidth() / 2;
-    settingsButton.setBounds(centerX - 185, topBarY, buttonW, 30);
-    calibrateButton.setBounds(centerX - 60, topBarY, buttonW, 30);
-    editModeButton.setBounds(centerX + 65, topBarY, buttonW, 30);
-    staticDialsButton.setBounds(centerX + 190, topBarY, buttonW, 30);
+    settingsButton.setBounds(centerX - 255, topBarY, buttonW, 30);
+    calibrateButton.setBounds(centerX - 125, topBarY, buttonW, 30);
+    editModeButton.setBounds(centerX + 5, topBarY, buttonW, 30);
+    staticDialsButton.setBounds(centerX + 135, topBarY, buttonW, 30);
+    chordBuilderButton.setBounds(centerX + 260, topBarY, buttonW, 30);
+
 
     int rightEdge = getWidth() - margin;
-    connectionStatusLabel.setBounds(rightEdge - 200, topBarY, 200, 20);
-    showNoteNamesButton.setBounds(rightEdge - 150, topBarY + 25, 150, 30);
+    maximizeButton.setBounds(rightEdge - 100, topBarY, 100, 30);
+    connectionStatusLabel.setBounds(maximizeButton.getX() - 210, topBarY, 200, 20);
+    showNoteNamesButton.setBounds(rightEdge - 100, topBarY + 35, 100, 30);
+    muteButton.setBounds(rightEdge - 100, showNoteNamesButton.getBottom() + 5, 100, 30);
 
-    hud.setBounds(0, 110, getWidth(), 550);
+    // ======================================================
+    // MAIN 3D AREA & BOTTOM BAR
+    // ======================================================
+    hud.setBounds(0, 110, getWidth(), getHeight() - 240);
 
     auto bottomArea = getLocalBounds().removeFromBottom(120).reduced(20, 10);
     int colWidth = bottomArea.getWidth() / 3;
@@ -443,9 +485,11 @@ void GestureInstrumentAudioProcessorEditor::resized() {
     zMinControl.setBounds(zCol.removeFromTop(halfHeight).reduced(0, 2));
     zMaxControl.setBounds(zCol.reduced(0, 2));
 
-    muteButton.setBounds(10, 100, 200, 30);
-
 }
+
+// ==============================================================================
+// 3. CORE LOGIC & TIMERS
+// ==============================================================================
 
 void GestureInstrumentAudioProcessorEditor::timerCallback() {
     if (isCalibrating) {
@@ -488,17 +532,20 @@ void GestureInstrumentAudioProcessorEditor::timerCallback() {
         }
     }
 
-    if (settingsPage.enableGestureSwitchButton.getToggleState() && !isCalibrating) {
+    // Now reading from your atomic bool!
+    if (audioProcessor.isGestureToMouseEnabled.load() && !isCalibrating) {
         bool leftFist = audioProcessor.leftHand.isPresent && audioProcessor.leftHand.grabStrength > 0.85f;
         bool rightFist = audioProcessor.rightHand.isPresent && audioProcessor.rightHand.grabStrength > 0.85f;
         bool gestureTriggered = false;
 
-        int mode = settingsPage.gestureTypeSelector.getSelectedId();
+        // Now reading from your processor int!
+        int mode = audioProcessor.virtualMouseGestureType;
         if (mode == 1) gestureTriggered = leftFist && rightFist;
         else if (mode == 2) gestureTriggered = rightFist;
         else if (mode == 3) gestureTriggered = leftFist;
 
-        float requiredHoldTime = (float)settingsPage.gestureTimerSlider.getValue();
+        // Now reading from your processor float!
+        float requiredHoldTime = audioProcessor.virtualMouseHoldTime;
 
         if (gestureTriggered && !menuGestureFired) {
             menuGestureTimer += 1.0f / 60.0f;
@@ -518,6 +565,16 @@ void GestureInstrumentAudioProcessorEditor::timerCallback() {
         menuGestureFired = false;
     }
 
+    hud.isEditMode = isEditMode;
+    hud.menuGestureTimer = menuGestureTimer;
+
+    // Sync the HUD visual timer as well!
+    hud.requiredHoldTime = audioProcessor.virtualMouseHoldTime;
+
+    hud.isCalibrating = isCalibrating;
+    hud.menuGestureFired = menuGestureFired;
+    chordBuilderButton.setEnabled(audioProcessor.currentOutputMode != OutputMode::OSC_Only);
+
     virtualCursor.updateCursorLogic(isEditMode);
     updateConnectionStatus();
     repaint();
@@ -534,6 +591,10 @@ void GestureInstrumentAudioProcessorEditor::updateConnectionStatus() {
         connectionStatusLabel.setColour(juce::Label::textColourId, juce::Colours::red);
     }
 }
+
+// ==============================================================================
+// 4. CALIBRATION LOGIC & OVERLAY
+// ==============================================================================
 
 void GestureInstrumentAudioProcessorEditor::CalibrationOverlay::paint(juce::Graphics& g) {
     g.fillAll(juce::Colours::black.withAlpha(0.4f));
@@ -594,6 +655,24 @@ void GestureInstrumentAudioProcessorEditor::stopCalibration(bool success) {
     }
 }
 
+// ==============================================================================
+// 5. 3D GRAPHICS & PROJECTION
+// ==============================================================================
+
+juce::Point<float> GestureInstrumentAudioProcessorEditor::projectPoint(Point3D p) {
+    float worldY = p.y - 250.0f;
+    float adjustedZ = -p.z;
+
+    float perspective = fov / (fov + adjustedZ + camDist);
+    float zoom = ((float)getHeight() * 0.55f) / 500.0f;
+    float finalScale = perspective * zoom * 2.5f;
+
+    float x2d = p.x * finalScale + centerScreen.x;
+    float y2d = -worldY * finalScale + centerScreen.y;
+
+    return juce::Point<float>(x2d, y2d);
+}
+
 void GestureInstrumentAudioProcessorEditor::drawCalibrationBox3D(juce::Graphics& g) {
     if (!isCalibrating || tempMinX == 1000.0f) return;
 
@@ -624,7 +703,6 @@ void GestureInstrumentAudioProcessorEditor::drawCalibrationBox3D(juce::Graphics&
     g.drawLine(juce::Line<float>(pF1, pC1), thick); g.drawLine(juce::Line<float>(pF2, pC2), thick);
     g.drawLine(juce::Line<float>(pF3, pC3), thick); g.drawLine(juce::Line<float>(pF4, pC4), thick);
 }
-
 
 void GestureInstrumentAudioProcessorEditor::draw3DGrid(juce::Graphics& g) {
     float minRoomX = -350.0f; float maxRoomX = 350.0f;
@@ -681,6 +759,29 @@ void GestureInstrumentAudioProcessorEditor::draw3DGrid(juce::Graphics& g) {
     g.drawLine(juce::Line<float>(ptC3, ptC4), thick); g.drawLine(juce::Line<float>(ptC4, ptC1), thick);
     g.drawLine(juce::Line<float>(ptF1, ptC1), thick); g.drawLine(juce::Line<float>(ptF2, ptC2), thick);
     g.drawLine(juce::Line<float>(ptF3, ptC3), thick); g.drawLine(juce::Line<float>(ptF4, ptC4), thick);
+
+    // --- DYNAMIC SPLIT X-AXIS LINE ---
+    if (audioProcessor.enableSplitXAxis.load()) {
+        // Find the exact middle between the left and right thresholds
+        float centerX = (minX + maxX) / 2.0f;
+
+        // Create the 4 points of the dividing wall
+        Point3D divF1 = { centerX, minY, minZ };
+        Point3D divF2 = { centerX, minY, maxZ };
+        Point3D divC1 = { centerX, maxY, minZ };
+        Point3D divC2 = { centerX, maxY, maxZ };
+
+        // Project them to 2D
+        auto pDivF1 = projectPoint(divF1); auto pDivF2 = projectPoint(divF2);
+        auto pDivC1 = projectPoint(divC1); auto pDivC2 = projectPoint(divC2);
+
+        // Draw a glowing orange line down the middle of the box
+        g.setColour(juce::Colours::orange.withAlpha(0.8f));
+        g.drawLine(juce::Line<float>(pDivF1, pDivF2), 2.5f); // Floor line
+        g.drawLine(juce::Line<float>(pDivC1, pDivC2), 2.5f); // Ceiling line
+        g.drawLine(juce::Line<float>(pDivF1, pDivC1), 2.5f); // Front vertical line
+        g.drawLine(juce::Line<float>(pDivF2, pDivC2), 2.5f); // Back vertical line
+    }
 }
 
 void GestureInstrumentAudioProcessorEditor::draw3DHand(juce::Graphics& g, const HandData& hand, juce::Colour baseColour) {
@@ -709,6 +810,78 @@ void GestureInstrumentAudioProcessorEditor::draw3DHand(juce::Graphics& g, const 
     Point3D palm3D = clampPoint({ hand.currentHandPositionX, hand.currentHandPositionY, hand.currentHandPositionZ });
     auto palm2D = projectPoint(palm3D);
     float palmDepth = juce::jmap(palm3D.z, -200.0f, 200.0f, 0.6f, 1.4f);
+
+    // --- NEW: DYNAMIC 3D FLOOR SHADOW ---
+    // 1. Cast a point straight down to the physical "floor"
+    // --- NEW: DYNAMIC 3D FLOOR SHADOW ---
+    if (audioProcessor.showFloorShadow) {
+        Point3D shadow3D = { palm3D.x, audioProcessor.minHeightThreshold, palm3D.z };
+        auto shadow2D = projectPoint(shadow3D);
+
+        float heightRatio = juce::jmap(palm3D.y, audioProcessor.minHeightThreshold, audioProcessor.maxHeightThreshold, 0.0f, 1.0f);
+        heightRatio = juce::jlimit(0.0f, 1.0f, heightRatio);
+
+        float shadowScale = juce::jmap(shadow3D.z, -200.0f, 200.0f, 0.6f, 1.4f);
+        float shadowW = (50.0f + (heightRatio * 70.0f)) * shadowScale;
+        float shadowH = shadowW * 0.35f;
+        float shadowAlpha = 0.5f - (heightRatio * 0.4f);
+
+        // 1. Create a 2D Path representing the exact shape of your physical floor
+        juce::Path floorPath;
+        floorPath.startNewSubPath(projectPoint({ audioProcessor.minWidthThreshold, audioProcessor.minHeightThreshold, audioProcessor.minDepthThreshold }));
+        floorPath.lineTo(projectPoint({ audioProcessor.maxWidthThreshold, audioProcessor.minHeightThreshold, audioProcessor.minDepthThreshold }));
+        floorPath.lineTo(projectPoint({ audioProcessor.maxWidthThreshold, audioProcessor.minHeightThreshold, audioProcessor.maxDepthThreshold }));
+        floorPath.lineTo(projectPoint({ audioProcessor.minWidthThreshold, audioProcessor.minHeightThreshold, audioProcessor.maxDepthThreshold }));
+        floorPath.closeSubPath();
+
+        // 2. Save the graphics state, clip to the floor, draw the shadow, and restore!
+        g.saveState();
+        g.reduceClipRegion(floorPath); // This acts as our invisible stencil!
+
+        g.setColour(baseColour.darker(0.8f).withAlpha(shadowAlpha));
+        g.fillEllipse(shadow2D.x - (shadowW / 2.0f), shadow2D.y - (shadowH / 2.0f), shadowW, shadowH);
+
+        g.restoreState(); // Removes the stencil so the rest of the hand draws normally
+    }
+    // ------------------------------------
+
+    // --- NEW: DYNAMIC 3D BACK-WALL SHADOW ---
+    // 1. Cast a point straight back to the physical "back wall" (minDepthThreshold)
+    if (audioProcessor.showWallShadow) {
+        Point3D wallShadow3D = { palm3D.x, palm3D.y, audioProcessor.minDepthThreshold };
+        auto wallShadow2D = projectPoint(wallShadow3D);
+
+        // 2. Calculate how far the hand is from the back wall (0.0 to 1.0)
+        float depthRatio = juce::jmap(palm3D.z, audioProcessor.minDepthThreshold, audioProcessor.maxDepthThreshold, 0.0f, 1.0f);
+        depthRatio = juce::jlimit(0.0f, 1.0f, depthRatio);
+
+        // 3. Shadow gets larger and more transparent the further you pull your hand away from the wall
+        float backWallScale = juce::jmap(audioProcessor.minDepthThreshold, -200.0f, 200.0f, 0.6f, 1.4f);
+        float wallShadowSize = (50.0f + (depthRatio * 70.0f)) * backWallScale;
+        float wallShadowAlpha = 0.4f - (depthRatio * 0.35f); // Fades from 0.4 opacity to near invisible
+
+        // 4. Create a 2D Path representing the exact shape of the BACK WALL
+        juce::Path wallPath;
+        wallPath.startNewSubPath(projectPoint({ audioProcessor.minWidthThreshold, audioProcessor.minHeightThreshold, audioProcessor.minDepthThreshold }));
+        wallPath.lineTo(projectPoint({ audioProcessor.maxWidthThreshold, audioProcessor.minHeightThreshold, audioProcessor.minDepthThreshold }));
+        wallPath.lineTo(projectPoint({ audioProcessor.maxWidthThreshold, audioProcessor.maxHeightThreshold, audioProcessor.minDepthThreshold }));
+        wallPath.lineTo(projectPoint({ audioProcessor.minWidthThreshold, audioProcessor.maxHeightThreshold, audioProcessor.minDepthThreshold }));
+        wallPath.closeSubPath();
+
+        // 5. Save state, clip to the back wall, draw shadow, and restore!
+        g.saveState();
+        g.reduceClipRegion(wallPath);
+
+        g.setColour(baseColour.darker(0.8f).withAlpha(wallShadowAlpha));
+
+        // We don't squash this ellipse because we are looking directly at the back wall!
+        g.fillEllipse(wallShadow2D.x - (wallShadowSize / 2.0f), wallShadow2D.y - (wallShadowSize / 2.0f), wallShadowSize, wallShadowSize);
+
+        g.restoreState();
+    }
+
+
+    // ------------------------------------
 
     if (hand.grabStrength > 0.1f) {
         float grabIntensity = hand.grabStrength;
@@ -769,9 +942,13 @@ void GestureInstrumentAudioProcessorEditor::draw3DHand(juce::Graphics& g, const 
     }
 }
 
+// ==============================================================================
+// 6. INPUT HANDLING
+// ==============================================================================
+
 bool GestureInstrumentAudioProcessorEditor::keyPressed(const juce::KeyPress& key) {
     if (key == juce::KeyPress::spaceKey) {
-         muteButton.button.triggerClick(); 
+        muteButton.triggerClick(); // <-- REMOVED .button
         return true;
     }
     if (key == juce::KeyPress::escapeKey) {
