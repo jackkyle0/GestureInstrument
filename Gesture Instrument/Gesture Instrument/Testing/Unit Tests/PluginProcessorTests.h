@@ -29,7 +29,7 @@ public:
             processor.globalMute.store(false);
             processor.isMpeEnabled = false;
 
-            // 4Load xml
+            // Load xml
             processor.loadPresetXml(savedState.get());
 
             // assert restoration
@@ -79,7 +79,7 @@ public:
             GestureInstrumentAudioProcessor::isRunningInUnitTest = true;
             GestureInstrumentAudioProcessor processor;
 
-            // Simulate the DAW initialising the plugin at an extreme 96kHz with a 1024 buffer
+            // Simulate the DAW initialising the plugin at 96kHz with a 1024 buffer
             double sampleRate = 96000.0;
             int samplesPerBlock = 1024;
 

@@ -20,6 +20,7 @@ GestureInstrumentAudioProcessor::GestureInstrumentAudioProcessor()
 {
     oscManager.connectSender("127.0.0.1", 9000);
 
+    // Run Units Tests
     if (!isRunningInUnitTest) {
         leapThread.startThread(juce::Thread::Priority::high);
     }

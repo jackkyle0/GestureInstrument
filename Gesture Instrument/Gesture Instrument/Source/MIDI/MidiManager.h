@@ -185,7 +185,7 @@ public:
         }
     }
 
-    // Atomic floats prevent data races to allow UI thread to safely read the live midi values 
+    // Atomic floats to prevent data races ... allows UI thread to safely read the live midi values 
     std::atomic<float> liveVolume{ -1.0f };
     std::atomic<float> livePan{ -1.0f };
     std::atomic<float> liveModulation{ -1.0f };

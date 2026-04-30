@@ -101,7 +101,7 @@ public:
 
         beginTest("3. MPE Zone Initialisation and Pitchbend Range Setup"); {
             juce::MPEZoneLayout layout;
-            layout.setLowerZone(15, 48); // 15 channels, 48 semitone pitch bend range
+            layout.setLowerZone(15, 48); // 15 channels.. 48 semitone pitch bend range
 
             expectEquals(layout.getLowerZone().perNotePitchbendRange, 48, "MPE Pitchbend range failed to set accurately.");
             expect(layout.getUpperZone().isActive() == false, "Upper zone should be inactive for standard MPE routing.");
@@ -119,7 +119,7 @@ public:
             int clampedMax = juce::jlimit(0, 16383, (int)(rawAxisMax * 16383.0f));
             expectEquals(clampedMax, 16383, "High out-of-bounds failed to clamp to 16383.");
 
-            float rawAxisMin = -0.5f;// out of bounds input
+            float rawAxisMin = -0.5f;// ""
             int clampedMin = juce::jlimit(0, 16383, (int)(rawAxisMin * 16383.0f));
             expectEquals(clampedMin, 0, "Low out-of-bounds failed to clamp to 0.");
         }

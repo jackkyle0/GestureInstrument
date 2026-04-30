@@ -320,7 +320,7 @@ void SettingsComponent::resized() {
     col1.removeFromTop(5);
     pinchMultControl.setBounds(col1.removeFromTop(25));
 
-    col1.removeFromTop(20); // Spacing
+    col1.removeFromTop(20); 
     virtualMouseLabel.setBounds(col1.removeFromTop(20));
     enableGestureSwitchButton.setBounds(col1.removeFromTop(25));
     gestureTypeSelector.setBounds(col1.removeFromTop(25));
@@ -391,6 +391,7 @@ void SettingsComponent::refreshUI() {
     mpePressureSelector.setSelectedId(audioProcessor.mpePressureAxis.load() + 1, juce::dontSendNotification);
 
     mpeButton.onClick();
+    modeSelector.onChange();
 
     bool isOsc = (audioProcessor.currentOutputMode == OutputMode::OSC_Only);
     leftXRow.updateList(isOsc); leftYRow.updateList(isOsc); leftZRow.updateList(isOsc);

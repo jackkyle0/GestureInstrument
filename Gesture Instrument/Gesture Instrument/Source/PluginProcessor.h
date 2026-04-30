@@ -81,7 +81,7 @@ public:
 	// Virtual Mouse settings
     std::atomic<bool> isVirtualMouse{ false };
     std::atomic<bool> isGestureToMouseEnabled{ true };
-    int virtualMouseGestureType = 1; // 1 = Both, 2 = Right, 3 = Left
+    int virtualMouseGestureType = 1; 
     float virtualMouseHoldTime = 1.5f;
 
     // Chord builder

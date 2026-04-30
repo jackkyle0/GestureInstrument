@@ -18,7 +18,7 @@ void LeapService::pollHandData(HandData& leftHand, HandData& rightHand, bool& is
             isConnected = true; // Hardware is actively tracking
         }
         else if (message.type == eLeapEventType_Device) {
-            // Sensor was recognized
+            // Sensor was recognised
             LeapSetPolicyFlags(connectionHandle, eLeapPolicyFlag_BackgroundFrames, 0);
             isConnected = true;
         }
