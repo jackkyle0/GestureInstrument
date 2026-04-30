@@ -1,4 +1,4 @@
-###### GestureInstrument ######
+# Gesture-based Musical Instrument Controller
 A gesture-controlled MIDI and OSC instrument using the Leap Motion Controller.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Prerequisites and Hardware Requirements
