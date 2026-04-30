@@ -6,18 +6,20 @@
 
 class LeapThread : public juce::Thread {
 public:
-    LeapThread() : juce::Thread("Leap Polling Thread")
+    LeapThread()
+        : juce::Thread("Leap Polling Thread")
     {
     }
 
-    ~LeapThread() override {
-        shutdown(); // Call our custom shutdown when destroyed
+    ~LeapThread() override
+    {
+        shutdown();
     }
 
     void shutdown() {
-        signalThreadShouldExit(); // 1. Signal the loop to break
-        leapService.stop();       // 2. Abort the USB poll so the thread unblocks
-        stopThread(3000);         // 3. Give it plenty of time to  die
+        signalThreadShouldExit();
+        stopThread(3000);   
+        leapService.stop(); // Safe to destroy the connection 
     }
 
     void run() override {
@@ -26,7 +28,6 @@ public:
         bool persistentConnected = false;
 
         while (!threadShouldExit()) {
-            // leapService.pollHandData will ONLY overwrite these if the USB queue has new data
             leapService.pollHandData(persistentLeft, persistentRight, persistentConnected);
 
             {
@@ -36,7 +37,7 @@ public:
                 sharedConnected = persistentConnected;
             }
 
-            wait(5); // polling rate
+            wait(5);
         }
     }
 
@@ -49,7 +50,6 @@ public:
             lastConnected = sharedConnected;
         }
 
-        // Output whatever the last successful read was
         outLeft = lastLeft;
         outRight = lastRight;
         outConnected = lastConnected;

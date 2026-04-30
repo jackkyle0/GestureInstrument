@@ -25,7 +25,7 @@ struct MappingRow : public juce::Component {
 
         comboBox.addItem("Volume", 2);
         comboBox.addItem("Pitch", 3);
-        comboBox.addItem("Mute", 4);
+        
         comboBox.addItem("Cutoff", 8);
         comboBox.addItem("Resonance", 9);
         comboBox.addItem("Attack", 10);
@@ -41,6 +41,7 @@ struct MappingRow : public juce::Component {
             comboBox.addItem("Distortion", 20);
         }
         else {
+            comboBox.addItem("Mute", 4);
             comboBox.addItem("Modulation", 5);
             comboBox.addItem("Expression", 6);
             comboBox.addItem("Breath", 7);

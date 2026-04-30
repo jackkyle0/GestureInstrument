@@ -93,7 +93,7 @@
       <ProgramDatabaseFile>$(IntDir)\GestureInstrument.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalOptions>LeapC.lib onnxruntime.lib %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>LeapC.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -140,7 +140,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <AdditionalOptions>LeapC.lib onnxruntime.lib %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>LeapC.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -154,7 +154,6 @@
     <ClCompile Include="..\..\Source\UI\SettingsComponent.cpp"/>
     <ClCompile Include="..\..\Source\PluginProcessor.cpp"/>
     <ClCompile Include="..\..\Source\PluginEditor.cpp"/>
-    <ClCompile Include="..\..\Testing\Unit Tests\SensorTests.cpp"/>
     <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -2927,7 +2926,6 @@
     <ClCompile Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_osc\juce_osc.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\JuceLibraryCode\BinaryData.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_audio_basics.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_audio_devices.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_audio_formats.cpp"/>
@@ -2958,8 +2956,6 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_osc.cpp"/>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Helpers\AdaptiveEngine.h"/>
-    <ClInclude Include="..\..\Source\Helpers\BiometricSpatialTracker.h"/>
     <ClInclude Include="..\..\Source\Helpers\HandData.h"/>
     <ClInclude Include="..\..\Source\Helpers\LeapService.h"/>
     <ClInclude Include="..\..\Source\Helpers\LeapThread.h"/>
@@ -2971,20 +2967,17 @@
     <ClInclude Include="..\..\Source\UI\SettingsComponent.h"/>
     <ClInclude Include="..\..\Source\UI\StaticDialsComponent.h"/>
     <ClInclude Include="..\..\Source\UI\VirtualCursor.h"/>
-    <ClInclude Include="..\..\Source\UI\WaveformComponent.h"/>
     <ClInclude Include="..\..\Source\MIDI\GestureTarget.h"/>
     <ClInclude Include="..\..\Source\MIDI\MidiManager.h"/>
     <ClInclude Include="..\..\Source\OSC\OscManager.h"/>
     <ClInclude Include="..\..\Source\PluginProcessor.h"/>
     <ClInclude Include="..\..\Source\PluginEditor.h"/>
-    <ClInclude Include="..\..\Testing\Integration Tests\UITests.h"/>
     <ClInclude Include="..\..\Testing\Unit Tests\LeapServiceTests.h"/>
     <ClInclude Include="..\..\Testing\Unit Tests\LeapThreadTests.h"/>
     <ClInclude Include="..\..\Testing\Unit Tests\MidiManagerTests.h"/>
     <ClInclude Include="..\..\Testing\Unit Tests\OscManagerTests.h"/>
     <ClInclude Include="..\..\Testing\Unit Tests\PluginProcessorTests.h"/>
     <ClInclude Include="..\..\Testing\Unit Tests\ScaleQuantiserTests.h"/>
-    <ClInclude Include="..\..\Testing\Unit Tests\SensorTests.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\buffers\juce_AudioChannelSet.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h"/>
@@ -4355,12 +4348,10 @@
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_osc\osc\juce_OSCTimeTag.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_osc\osc\juce_OSCTypes.h"/>
     <ClInclude Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_osc\juce_osc.h"/>
-    <ClInclude Include="..\..\JuceLibraryCode\BinaryData.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\JuceHeader.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\JucePluginDefines.h"/>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\Analysis\gesture_model_packaged.onnx"/>
     <None Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_devices\native\oboe\src\common\README.md"/>
     <None Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_devices\native\oboe\src\flowgraph\resampler\README.md"/>
     <None Include="..\..\..\..\..\Jacks Downloads\juce-8.0.10-windows\JUCE\modules\juce_audio_devices\native\oboe\CMakeLists.txt"/>

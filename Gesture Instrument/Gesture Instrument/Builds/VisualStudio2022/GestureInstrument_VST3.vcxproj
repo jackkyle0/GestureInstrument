@@ -47,14 +47,14 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\VST3\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">GestureInstrument</TargetName>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(LibraryPath);&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;&quot;C:\Users\Student\Desktop\Jacks Desktop\GestureInstrument\Gesture Instrument\Gesture Instrument\Source\ThirdParty\onnxruntime\lib&quot;;$(SolutionDir)$(Platform)\$(Configuration)\Shared Code</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(LibraryPath);&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;$(SolutionDir)$(Platform)\$(Configuration)\Shared Code</LibraryPath>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</PreBuildEventUseInBuild>
     <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</PostBuildEventUseInBuild>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)$(Platform)\$(Configuration)\VST3\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\VST3\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">GestureInstrument</TargetName>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(LibraryPath);&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;&quot;C:\Users\Student\Desktop\Jacks Desktop\GestureInstrument\Gesture Instrument\Gesture Instrument\Source\ThirdParty\onnxruntime\lib&quot;;$(SolutionDir)$(Platform)\$(Configuration)\Shared Code</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(LibraryPath);&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;$(SolutionDir)$(Platform)\$(Configuration)\Shared Code</LibraryPath>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</PreBuildEventUseInBuild>
     <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</PostBuildEventUseInBuild>
   </PropertyGroup>
@@ -94,10 +94,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)\GestureInstrument.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;&quot;C:\Users\Student\Desktop\Jacks Desktop\GestureInstrument\Gesture Instrument\Gesture Instrument\Source\ThirdParty\onnxruntime\lib&quot;;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalDependencies>GestureInstrument.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>LeapC.lib onnxruntime.lib %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>LeapC.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -105,7 +105,7 @@
     </Bscmake>
     <Lib>
       <AdditionalDependencies>GestureInstrument.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;&quot;C:\Users\Student\Desktop\Jacks Desktop\GestureInstrument\Gesture Instrument\Gesture Instrument\Source\ThirdParty\onnxruntime\lib&quot;;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PreBuildEvent>
       <Command>if &quot;$(PROCESSOR_ARCHITECTURE)&quot; == &quot;x86&quot; if defined PROCESSOR_ARCHITEW6432 (
@@ -199,11 +199,11 @@ echo : Info: VST3 manifest generation is disabled for GestureInstrument because 
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <AdditionalLibraryDirectories>&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;&quot;C:\Users\Student\Desktop\Jacks Desktop\GestureInstrument\Gesture Instrument\Gesture Instrument\Source\ThirdParty\onnxruntime\lib&quot;;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LargeAddressAware>true</LargeAddressAware>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <AdditionalDependencies>GestureInstrument.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>LeapC.lib onnxruntime.lib %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>LeapC.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -211,7 +211,7 @@ echo : Info: VST3 manifest generation is disabled for GestureInstrument because 
     </Bscmake>
     <Lib>
       <AdditionalDependencies>GestureInstrument.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;&quot;C:\Users\Student\Desktop\Jacks Desktop\GestureInstrument\Gesture Instrument\Gesture Instrument\Source\ThirdParty\onnxruntime\lib&quot;;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>&quot;C:/Users/Student/Desktop/Leap Motion/LeapDeveloperKit/LeapSDK/lib/x64&quot;;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PreBuildEvent>
       <Command>if &quot;$(PROCESSOR_ARCHITECTURE)&quot; == &quot;x86&quot; if defined PROCESSOR_ARCHITEW6432 (

@@ -8,9 +8,6 @@
 #include "MIDI/GestureTarget.h"
 #include "Helpers/MusicalRangeMode.h" 
 #include "Helpers/LeapThread.h"
-#include "Helpers/BiometricSpatialTracker.h"
-//#include "../Testing/Unit Tests/SensorTests.h"
-
 
 enum class OutputMode {
     OSC_Only,
@@ -19,8 +16,7 @@ enum class OutputMode {
 
 class GestureInstrumentAudioProcessor : public juce::AudioProcessor {
 public:
-
-    static inline bool isRunningInUnitTest = false; // <-- Add this!
+    static inline bool isRunningInUnitTest = false;
 
     GestureInstrumentAudioProcessor();
     ~GestureInstrumentAudioProcessor() override;
@@ -33,12 +29,10 @@ public:
 #endif
 
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
-
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
     const juce::String getName() const override;
-
     bool acceptsMidi() const override;
     bool producesMidi() const override;
     bool isMidiEffect() const override;
@@ -57,29 +51,59 @@ public:
         oscManager.connectSender(newIp, newPort);
     }
 
-    // --- State Variables ---
+    // Global state / Routing
     OutputMode currentOutputMode = OutputMode::MIDI_Only;
-    bool isMpeEnabled = false;
-    std::atomic<bool> muteOutput{ false };
+    std::atomic<bool> globalMute{ false };
+    std::atomic<bool> isCalibrating{ false };
+    std::atomic<bool> isWindowMaximized{ false };
+
+    int currentInstrument = 90;
+    bool instrumentChanged = true;
+
+    // Musicial settings
+    int rootNote = 0;
+    int scaleType = 0;
+    std::vector<int> customScaleIntervals{ 0, 2, 4, 7, 9 };
 
     MusicalRangeMode currentRangeMode = MusicalRangeMode::OctaveRange;
     int octaveRange = 2;
     int startNote = 48;
     int endNote = 72;
-
-    bool showNoteNames = false;
     bool invertNoteTrigger = false;
-    int rootNote = 0;
-    int scaleType = 0;
-    int currentScale = 1;
-    int targetScale = 1;
-    int currentInstrument = 90;
-    bool instrumentChanged = true;
+    bool showNoteNames = false;
 
-    int leftHandTargetCC = 1;
-    int rightHandTargetCC = 7;
+    // Mpe settings
+    bool isMpeEnabled = false;
+    std::atomic<int> mpePitchBendAxis{ 1 }; // x-axis
+    std::atomic<int> mpeTimbreAxis{ 2 };    // y-axis
+    std::atomic<int> mpePressureAxis{ 3 };  // z-axis
 
-    // --- Routing Targets ---
+	// Virtual Mouse settings
+    std::atomic<bool> isVirtualMouse{ false };
+    std::atomic<bool> isGestureToMouseEnabled{ true };
+    int virtualMouseGestureType = 1; // 1 = Both, 2 = Right, 3 = Left
+    float virtualMouseHoldTime = 1.5f;
+
+    // Chord builder
+    std::atomic<bool> chordEngineEnabled{ true };
+
+    // Left Hand Chords
+    std::atomic<bool> leftChordDegree1{ true }, leftChordDegree2{ false }, leftChordDegree3{ true }, leftChordDegree4{ false }, leftChordDegree5{ true }, leftChordDegree6{ false }, leftChordDegree7{ false };
+    std::atomic<bool> leftRootI{ true }, leftRootII{ true }, leftRootIII{ true }, leftRootIV{ true }, leftRootV{ true }, leftRootVI{ true }, leftRootVII{ true };
+    std::atomic<int> leftChordInversionMode{ 0 };
+    std::atomic<bool> leftDropBass{ false };
+
+    // Right Hand Chords
+    std::atomic<bool> rightChordDegree1{ true }, rightChordDegree2{ false }, rightChordDegree3{ true }, rightChordDegree4{ false }, rightChordDegree5{ true }, rightChordDegree6{ false }, rightChordDegree7{ false };
+    std::atomic<bool> rightRootI{ true }, rightRootII{ true }, rightRootIII{ true }, rightRootIV{ true }, rightRootV{ true }, rightRootVI{ true }, rightRootVII{ true };
+    std::atomic<int> rightChordInversionMode{ 0 };
+    std::atomic<bool> rightDropBass{ false };
+
+    // HUD tracking arrays
+    std::atomic<int> activeLeftNotes[8];
+    std::atomic<int> activeRightNotes[8];
+
+    // Gesture Mapping targets
     GestureTarget leftXTarget = GestureTarget::None;
     GestureTarget leftYTarget = GestureTarget::Pitch;
     GestureTarget leftZTarget = GestureTarget::None;
@@ -104,11 +128,15 @@ public:
     GestureTarget rightRingTarget = GestureTarget::None;
     GestureTarget rightPinkyTarget = GestureTarget::None;
 
-    // --- Hand Data & Physical Thresholds ---
+    // Spatial and hardware thresholds
     HandData leftHand;
     HandData rightHand;
     bool isSensorConnected = false;
     float sensitivityLevel = 1.0f;
+
+    std::atomic<bool> enableSplitXAxis{ false };
+    bool showFloorShadow = true;
+    bool showWallShadow = true;
 
     float minWidthThreshold = -200.0f;
     float maxWidthThreshold = 200.0f;
@@ -117,7 +145,11 @@ public:
     float minDepthThreshold = -150.0f;
     float maxDepthThreshold = 150.0f;
 
-    // --- Static Dial Values ---
+    std::atomic<float> wristMultiplier{ 1.0f };
+    std::atomic<float> grabMultiplier{ 1.0f };
+    std::atomic<float> pinchMultiplier{ 1.0f };
+
+    // Static parameters
     float staticVolume = 0.8f;
     float staticPan = 0.5f;
     float staticModulation = 0.0f;
@@ -133,80 +165,20 @@ public:
     float staticDelay = 0.0f;
     float staticDistortion = 0.0f;
 
-    int waveformGestureSource = 0;
-
-    // --- Live Variables ---
-    std::atomic<float> liveVolume{ -1.0f };
-    std::atomic<float> liveCutoff{ -1.0f };
-    std::atomic<float> liveResonance{ -1.0f };
-    std::atomic<float> liveReverb{ -1.0f };
-    std::atomic<float> liveWaveform{ -1.0f };
-    std::atomic<float> liveSustain{ -1.0f };
-    std::atomic<float> livePortamento{ -1.0f };
-
-    float tempMinY = 1000.0f;
-    float tempMaxY = 0.0f;
-    float calibrationProgress = 0.0f;
+    // Managers
+    OscManager oscManager;
+    MidiManager midiManager;
 
     std::unique_ptr<juce::XmlElement> createPresetXml();
     void loadPresetXml(juce::XmlElement* xml);
 
-    OscManager oscManager;
-    MidiManager midiManager;
-    std::atomic<double> timeLastFrameReceived{ 0.0 };
-    std::atomic<bool> isAdaptiveEnabled{ false };
-
-    std::atomic<bool> globalMute{ false };
-    std::atomic<bool> isVirtualMouse{ false };
-
-    std::atomic<bool> isGestureToMouseEnabled{ true }; // Tracks SETTING
-
-    int virtualMouseGestureType = 1; // 1 = Both, 2 = Right, 3 = Left
-    float virtualMouseHoldTime = 1.5f;
-
-    std::atomic<bool> isCalibrating{ false };
-
-    std::vector<int> customScaleIntervals{ 0, 2, 4, 7, 9 };
-
-    bool showFloorShadow = true;
-    bool showWallShadow = true;
-
-    std::atomic<bool> enableSplitXAxis{ false };
-
-    std::atomic<int> mpePitchBendAxis{ 1 }; // Default: X-Axis
-    std::atomic<int> mpeTimbreAxis{ 2 };    // Default: Y-Axis
-    std::atomic<int> mpePressureAxis{ 3 };  // Default: Z-Axis
-
-
-    // --- LEFT HAND CHORD ENGINE ---
-    std::atomic<bool> leftChordDegree1{ true }, leftChordDegree2{ false }, leftChordDegree3{ true }, leftChordDegree4{ false }, leftChordDegree5{ true }, leftChordDegree6{ false }, leftChordDegree7{ false };
-    std::atomic<bool> leftRootI{ true }, leftRootII{ true }, leftRootIII{ true }, leftRootIV{ true }, leftRootV{ true }, leftRootVI{ true }, leftRootVII{ true };
-    std::atomic<int> leftChordInversionMode{ 0 };
-    std::atomic<bool> leftDropBass{ false };
-
-    // --- RIGHT HAND CHORD ENGINE ---
-    std::atomic<bool> rightChordDegree1{ true }, rightChordDegree2{ false }, rightChordDegree3{ true }, rightChordDegree4{ false }, rightChordDegree5{ true }, rightChordDegree6{ false }, rightChordDegree7{ false };
-    std::atomic<bool> rightRootI{ true }, rightRootII{ true }, rightRootIII{ true }, rightRootIV{ true }, rightRootV{ true }, rightRootVI{ true }, rightRootVII{ true };
-    std::atomic<int> rightChordInversionMode{ 0 };
-    std::atomic<bool> rightDropBass{ false };
-
-    // --- CHORD ENGINE MASTER & HUD TRACKING ---
-    std::atomic<bool> chordEngineEnabled{ true };
-    std::atomic<int> activeLeftNotes[8];  // Stores up to 8 notes for the HUD
-    std::atomic<int> activeRightNotes[8]; // Stores up to 8 notes for the HUD
-
-    std::atomic<bool> isWindowMaximized{ false };
-
-
-
-
-
 private:
     LeapThread leapThread;
 
-    // --- Global Smoothing Trackers ---
+    // Smoothing state
     bool wasMutedLastFrame = false;
     float savedPreMuteVolume = 0.8f;
+    int lastOutputModeInt = -1;
 
     bool leftHandWasPresent = false;
     float smoothLeftX = 0.0f, smoothLeftY = 0.0f, smoothLeftZ = 0.0f;
@@ -214,17 +186,7 @@ private:
 
     bool rightHandWasPresent = false;
     float smoothRightX = 0.0f, smoothRightY = 0.0f, smoothRightZ = 0.0f;
-
     float smoothRightRoll = 0.0f, smoothRightGrab = 0.0f, smoothRightPinch = 0.0f;
-
-    int lastOutputModeInt = -1;
-    bool invertFirstOctave = false;
-
-
-    // --- Biometric Trackers ---
-    BiometricSpatialTracker xTracker{ 72000, -350.0f, 350.0f, 150.0f };
-    BiometricSpatialTracker yTracker{ 72000, 50.0f, 500.0f, 100.0f };
-    BiometricSpatialTracker zTracker{ 72000, -225.0f, 225.0f, 100.0f };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GestureInstrumentAudioProcessor)
 };

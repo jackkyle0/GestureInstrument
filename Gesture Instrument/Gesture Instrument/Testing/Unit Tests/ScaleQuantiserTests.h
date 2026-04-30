@@ -80,9 +80,9 @@ public:
             ScaleQuantiser sq;
             int rootFs = 66; // F#4
 
-            // The perfect 5th of F# is C# (73). We check if the quantiser recognizes this dynamically.
+            // The perfect 5th of F# is C#... check if the quantiser recognizes this 
             float exactCsharp = 73.0f / 127.0f;
-            int snappedNote = sq.getQuantisedNote(exactCsharp, rootFs, 1); // 1 = Major Scale
+            int snappedNote = sq.getQuantisedNote(exactCsharp, rootFs, 1); // 1 = major
 
             expectEquals(snappedNote, 73, "Transposition failed. F# Major should recognize its perfect 5th (C#) without snapping it away.");
         }
@@ -92,13 +92,13 @@ public:
             ScaleQuantiser sq;
             int rootC = 60;
 
-            // In C Major Pentatonic (C, D, E, G, A), the note F (65) does not exist.
-            // It sits in a wider gap between E (64) and G (67).
+            // C Major Pentatonic (C,D,E,G,A), the note F (65) does not exist
+            // It sits in a gap between E (64) and G (67).
             float valueF = 65.0f / 127.0f;
-            int snappedNote = sq.getQuantisedNote(valueF, rootC, 3); // Assuming 3 = Minor/Major Pentatonic
+            int snappedNote = sq.getQuantisedNote(valueF, rootC, 3); // 3 = Minor/Major Penta
 
             expect(snappedNote != 65, "Pentatonic scale failed to snap out-of-key note.");
-            // Note: It will either snap down to E or up to G depending on your math logic, both are mathematically correct for this test!
+            // It will either snap down to E or up to G, both are correct for this test
             expect(snappedNote == 64 || snappedNote == 67 || snappedNote == 63, "Note F must snap to the nearest valid Pentatonic note.");
         }
     }

@@ -11,25 +11,62 @@ public:
 
     void paint(juce::Graphics&) override;
     void resized() override;
-
-    juce::TextButton closeButton{ "Close" };
-
-    juce::ToggleButton enableGestureSwitchButton{ "Enable Gesture to Virtual Mouse" };
-    juce::Slider gestureTimerSlider{ juce::Slider::LinearHorizontal, juce::Slider::TextBoxLeft };
-    juce::ComboBox gestureTypeSelector;
-
-    std::function<void()> onPresetLoaded;
     void refreshUI();
 
-
+    juce::TextButton closeButton{ "Close" };
+    std::function<void()> onPresetLoaded;
 
 private:
     GestureInstrumentAudioProcessor& audioProcessor;
 
+    // UI labels
     juce::Label titleLabel{ "Settings", "Gesture Mapping" };
     juce::Label leftHandLabel{ "Left Hand", "Left Hand" };
     juce::Label rightHandLabel{ "Right Hand", "Right Hand" };
+    juce::Label visualsLabel{ "VISUALS", "VISUALS" };
+    juce::Label standaloneLabel{ "STANDALONE SYNTH", "STANDALONE SYNTH" };
+    juce::Label modeLabel{ "Output Mode:", "OUTPUT MODE:" };
+    juce::Label midiLabel{ "Midi", "MIDI" };
+    juce::Label advCalibLabel{ "Advanced", "ADVANCED CALIBRATION" };
+    juce::Label presetLabel{ "Save/Load Preset", "SAVE/LOAD PRESET" };
 
+    // System toggles
+    juce::ComboBox modeSelector;
+    juce::ComboBox instrumentSelector;
+    juce::Label instrumentLabel;
+
+    juce::ToggleButton floorShadowToggle{ "Floor Shadow" };
+    juce::ToggleButton wallShadowToggle{ "Wall Shadow" };
+    juce::ToggleButton splitXAxisToggle{ "Split X-Axis" };
+    juce::ToggleButton invertTriggerButton{ "Invert Mute" };
+
+    // Virtual mouse
+    juce::Label virtualMouseLabel{ "Virtual Mouse", "VIRTUAL MOUSE" };
+    juce::ToggleButton enableGestureSwitchButton{ "Enable Gesture to Virtual Mouse" };
+    juce::Slider gestureTimerSlider{ juce::Slider::LinearHorizontal, juce::Slider::TextBoxLeft };
+    juce::ComboBox gestureTypeSelector;
+
+    // Preset management
+    juce::TextButton savePresetButton{ "Save Preset" };
+    juce::TextButton loadPresetButton{ "Load Preset" };
+    std::unique_ptr<juce::FileChooser> fileChooser;
+    juce::File lastPresetDirectory{ juce::File::getSpecialLocation(juce::File::userDocumentsDirectory) };
+
+    // MPE 
+    juce::ToggleButton mpeButton{ "Enable MPE" };
+    juce::Label mpeRoutingLabel{ "MPE", "MPE ROUTING:" };
+
+    juce::Label mpePitchLabel{ "Pitch", "Pitch Bend (Glide):" };
+    juce::ComboBox mpePitchSelector;
+
+    juce::Label mpeTimbreLabel{ "Timbre", "Timbre (Slide):" };
+    juce::ComboBox mpeTimbreSelector;
+
+    juce::Label mpePressureLabel{ "Pressure", "Pressure (Press):" };
+    juce::ComboBox mpePressureSelector;
+
+
+    // Left hand
     MappingRow leftXRow{ "X Axis \n(Side-to-side)", 99 };
     MappingRow leftYRow{ "Y Axis (Height)", 2 };
     MappingRow leftZRow{ "Z Axis (Depth)", 99 };
@@ -43,6 +80,7 @@ private:
     MappingRow leftRingRow{ "Ring", 99 };
     MappingRow leftPinkyRow{ "Pinky", 99 };
 
+    // Right hand
     MappingRow rightXRow{ "X Axis \n(Side-to-side)", 99 };
     MappingRow rightYRow{ "Y Axis (Height)", 2 };
     MappingRow rightZRow{ "Z Axis (Depth)", 10 };
@@ -56,43 +94,14 @@ private:
     MappingRow rightRingRow{ "Ring", 99 };
     MappingRow rightPinkyRow{ "Pinky", 99 };
 
-    juce::ComboBox instrumentSelector;
-    juce::Label instrumentLabel;
-    juce::ToggleButton invertTriggerButton{ "Invert Note Off (Selected Gesture to Mute)" };
+	// Advanced calibration
+    LabeledSlider wristMultControl{ "Wrist Sens", 1.0f, 3.0f, 1.0f };
+    LabeledSlider grabMultControl{ "Grab Sens", 1.0f, 3.0f, 1.0f };
+    LabeledSlider pinchMultControl{ "Pinch Sens", 1.0f, 3.0f, 1.0f };
 
-    juce::ComboBox modeSelector;
-    juce::Label modeLabel;
-
-    juce::TextButton savePresetButton{ "Save Preset" };
-    juce::TextButton loadPresetButton{ "Load Preset" };
-    std::unique_ptr<juce::FileChooser> fileChooser;
-    juce::File lastPresetDirectory{ juce::File::getSpecialLocation(juce::File::userDocumentsDirectory) };
-
-    juce::ToggleButton mpeButton{ "Enable MPE" };
-    juce::ToggleButton adaptiveToggle{ "Enable Adaptive Interface" };
-
+   // helpers
     int getIdFromTarget(GestureTarget target);
     GestureTarget getTargetFromId(int id);
-
-    juce::ToggleButton floorShadowToggle{ "Floor Shadow" };
-    juce::ToggleButton wallShadowToggle{ "Wall Shadow" };
-
-    juce::ToggleButton splitXAxisToggle{ "Split X-Axis" };
-
-
-    juce::Label mpeRoutingLabel{ "MPE", "MPE ROUTING:" };
-    juce::Label mpePitchLabel{ "Pitch", "Pitch Bend (Glide):" };
-    juce::ComboBox mpePitchSelector;
-    juce::Label mpeTimbreLabel{ "Timbre", "Timbre (Slide):" };
-    juce::ComboBox mpeTimbreSelector;
-    juce::Label mpePressureLabel{ "Pressure", "Pressure (Press):" };
-    juce::ComboBox mpePressureSelector;
-
-    juce::Label visualsLabel;
-    juce::Label standaloneLabel;
-
-   
-
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsComponent)
 };

@@ -1,8 +1,7 @@
 #pragma once
+
 #include <JuceHeader.h>
 #include "../PluginProcessor.h"
-
-
 
 class ChordBuilder : public juce::Component {
 public:
@@ -10,22 +9,18 @@ public:
     ~ChordBuilder() override;
 
     void paint(juce::Graphics& g) override;
-    //void paintOverChildren(juce::Graphics& g) override; // <-- ADD THIS
     void resized() override;
     void refreshUI();
 
-    juce::TextButton jazzButton{ "Jazz (ii - V - I)" };
     juce::TextButton closeButton{ "Close" };
-
-
 
 private:
     GestureInstrumentAudioProcessor& audioProcessor;
 
     juce::ToggleButton enableEngineBtn{ "Enable Chord Builder" };
-    juce::Label titleLabel{"", "CHORD BUILDER" };
+    juce::Label titleLabel{ "", "CHORD BUILDER" };
 
-    // --- LEFT HAND UI ---
+    // Left hand
     juce::Label leftHandLabel{ "", "LEFT HAND" };
     juce::Label leftVoicingLabel{ "", "CHORD SHAPE" };
     juce::Label leftProgLabel{ "", "PROGRESSION" };
@@ -38,7 +33,7 @@ private:
     juce::TextButton leftAllRootsBtn;
     juce::TextButton leftInvRootBtn, leftInvFirstBtn, leftInvSecondBtn, leftDropBassBtn;
 
-    // --- RIGHT HAND UI ---
+    // Right hand
     juce::Label rightHandLabel{ "", "RIGHT HAND" };
     juce::Label rightVoicingLabel{ "", "CHORD SHAPE" };
     juce::Label rightProgLabel{ "", "PROGRESSION" };
@@ -51,9 +46,9 @@ private:
     juce::TextButton rightAllRootsBtn;
     juce::TextButton rightInvRootBtn, rightInvFirstBtn, rightInvSecondBtn, rightDropBassBtn;
 
+    // Array and helpers
     juce::String degreeNames[7] = { "1", "2", "3", "4", "5", "6", "7" };
     juce::String rootNames[7] = { "I", "ii", "iii", "IV", "V", "vi", "vii" };
-
 
     void updateProcessorFromButtons();
 

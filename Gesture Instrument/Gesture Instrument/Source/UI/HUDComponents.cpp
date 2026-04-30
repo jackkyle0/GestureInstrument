@@ -16,7 +16,7 @@ void HUDComponents::paint(juce::Graphics& g) {
     int bottomY = topY + hudThick + spacing;
     float sens = audioProcessor.sensitivityLevel;
 
-    auto normaise = [](float rawValue, float minBound, float maxBound, float sensitivityMultiplier) {
+    auto normalizeAxis = [](float rawValue, float minBound, float maxBound, float sensitivityMultiplier) {
         float mappedValue = juce::jmap(rawValue, minBound, maxBound, 0.0f, 1.0f);
         float centerOffset = 0.5f;
         mappedValue = centerOffset + ((mappedValue - centerOffset) * sensitivityMultiplier);
@@ -28,47 +28,49 @@ void HUDComponents::paint(juce::Graphics& g) {
     float leftMaxX = splitX ? centerX : audioProcessor.maxWidthThreshold;
     float rightMinX = splitX ? centerX : audioProcessor.minWidthThreshold;
 
-    float lValX = -1.0f, lValY = -1.0f, lValZ = -1.0f, lValRoll = -1.0f;
+    float leftValX = -1.0f, leftValY = -1.0f, leftValZ = -1.0f, leftValRoll = -1.0f;
     if (audioProcessor.leftHand.isPresent) {
-        lValX = normaise(audioProcessor.leftHand.currentHandPositionX, audioProcessor.minWidthThreshold, leftMaxX, sens);
-        lValY = normaise(audioProcessor.leftHand.currentHandPositionY, audioProcessor.minHeightThreshold, audioProcessor.maxHeightThreshold, sens);
-        lValZ = 1.0f - normaise(audioProcessor.leftHand.currentHandPositionZ, audioProcessor.minDepthThreshold, audioProcessor.maxDepthThreshold, sens);
-        lValRoll = 1.0f - juce::jlimit(0.0f, 1.0f, juce::jmap(audioProcessor.leftHand.currentWristRotation, -0.6f, 0.6f, 0.0f, 1.0f));
+        leftValX = normalizeAxis(audioProcessor.leftHand.currentHandPositionX, audioProcessor.minWidthThreshold, leftMaxX, sens);
+        leftValY = normalizeAxis(audioProcessor.leftHand.currentHandPositionY, audioProcessor.minHeightThreshold, audioProcessor.maxHeightThreshold, sens);
+        leftValZ = 1.0f - normalizeAxis(audioProcessor.leftHand.currentHandPositionZ, audioProcessor.minDepthThreshold, audioProcessor.maxDepthThreshold, sens);
+        float baseLeftRoll = juce::jmap(audioProcessor.leftHand.currentWristRotation, -0.6f, 0.6f, 0.0f, 1.0f);
+        leftValRoll = 1.0f - juce::jlimit(0.0f, 1.0f, baseLeftRoll * audioProcessor.wristMultiplier.load());
     }
 
-    float rValX = -1.0f, rValY = -1.0f, rValZ = -1.0f, rValRoll = -1.0f;
+    float rightValX = -1.0f, rightValY = -1.0f, rightValZ = -1.0f, rightValRoll = -1.0f;
     if (audioProcessor.rightHand.isPresent) {
-        rValX = normaise(audioProcessor.rightHand.currentHandPositionX, rightMinX, audioProcessor.maxWidthThreshold, sens);
-        rValY = normaise(audioProcessor.rightHand.currentHandPositionY, audioProcessor.minHeightThreshold, audioProcessor.maxHeightThreshold, sens);
-        rValZ = 1.0f - normaise(audioProcessor.rightHand.currentHandPositionZ, audioProcessor.minDepthThreshold, audioProcessor.maxDepthThreshold, sens);
-        rValRoll = 1.0f - juce::jlimit(0.0f, 1.0f, juce::jmap(audioProcessor.rightHand.currentWristRotation, -0.6f, 0.6f, 0.0f, 1.0f));
+        rightValX = normalizeAxis(audioProcessor.rightHand.currentHandPositionX, rightMinX, audioProcessor.maxWidthThreshold, sens);
+        rightValY = normalizeAxis(audioProcessor.rightHand.currentHandPositionY, audioProcessor.minHeightThreshold, audioProcessor.maxHeightThreshold, sens);
+        rightValZ = 1.0f - normalizeAxis(audioProcessor.rightHand.currentHandPositionZ, audioProcessor.minDepthThreshold, audioProcessor.maxDepthThreshold, sens);
+        float baseRightRoll = juce::jmap(audioProcessor.rightHand.currentWristRotation, -0.6f, 0.6f, 0.0f, 1.0f);
+        rightValRoll = 1.0f - juce::jlimit(0.0f, 1.0f, baseRightRoll * audioProcessor.wristMultiplier.load());
     }
 
-    // --- 2. UPDATED LEFT HAND DRAWING (Notice the 'true' passed at the end for Left Hand) ---
+    // Left hand hud
     juce::Rectangle<int> leftXRect(margin, topY, topBarWidth, hudThick);
-    drawParameterHUD(g, leftXRect, audioProcessor.leftXTarget, lValX, false, "L-X", juce::Colours::cyan, true);
+    drawParameterHUD(g, leftXRect, audioProcessor.leftXTarget, leftValX, false, "L-X", juce::Colours::cyan, true);
 
     juce::Rectangle<int> leftYRect(margin, bottomY, hudThick, barHeight);
-    drawParameterHUD(g, leftYRect, audioProcessor.leftYTarget, lValY, true, "L-Y", juce::Colours::cyan, true);
+    drawParameterHUD(g, leftYRect, audioProcessor.leftYTarget, leftValY, true, "L-Y", juce::Colours::cyan, true);
 
     juce::Rectangle<int> leftZRect(leftYRect.getRight() + spacing, bottomY, hudThick, barHeight);
-    drawParameterHUD(g, leftZRect, audioProcessor.leftZTarget, lValZ, true, "L-Z", juce::Colours::cyan.darker(0.2f), true);
+    drawParameterHUD(g, leftZRect, audioProcessor.leftZTarget, leftValZ, true, "L-Z", juce::Colours::cyan.darker(0.2f), true);
 
     juce::Rectangle<int> leftRollRect(margin, leftYRect.getBottom() + spacing, (hudThick * 2) + spacing, 80);
-    drawDial(g, leftRollRect, audioProcessor.leftRollTarget, lValRoll, "L-ROLL", juce::Colours::cyan.brighter());
+    drawDial(g, leftRollRect, audioProcessor.leftRollTarget, leftValRoll, "L-ROLL", juce::Colours::cyan.brighter());
 
-    // --- 3. UPDATED RIGHT HAND DRAWING (Notice the 'false' passed at the end for Right Hand) ---
+    // Right hand hud
     juce::Rectangle<int> rightXRect(getWidth() - topBarWidth - margin, topY, topBarWidth, hudThick);
-    drawParameterHUD(g, rightXRect, audioProcessor.rightXTarget, rValX, false, "R-X", juce::Colours::magenta, false);
+    drawParameterHUD(g, rightXRect, audioProcessor.rightXTarget, rightValX, false, "R-X", juce::Colours::magenta, false);
 
     juce::Rectangle<int> rightYRect(getWidth() - margin - hudThick, bottomY, hudThick, barHeight);
-    drawParameterHUD(g, rightYRect, audioProcessor.rightYTarget, rValY, true, "R-Y", juce::Colours::magenta, false);
+    drawParameterHUD(g, rightYRect, audioProcessor.rightYTarget, rightValY, true, "R-Y", juce::Colours::magenta, false);
 
     juce::Rectangle<int> rightZRect(rightYRect.getX() - spacing - hudThick, bottomY, hudThick, barHeight);
-    drawParameterHUD(g, rightZRect, audioProcessor.rightZTarget, rValZ, true, "R-Z", juce::Colours::magenta.darker(0.2f), false);
+    drawParameterHUD(g, rightZRect, audioProcessor.rightZTarget, rightValZ, true, "R-Z", juce::Colours::magenta.darker(0.2f), false);
 
     juce::Rectangle<int> rightRollRect(rightZRect.getX(), rightYRect.getBottom() + spacing, (hudThick * 2) + spacing, 80);
-    drawDial(g, rightRollRect, audioProcessor.rightRollTarget, rValRoll, "R-ROLL", juce::Colours::magenta.brighter());
+    drawDial(g, rightRollRect, audioProcessor.rightRollTarget, rightValRoll, "R-ROLL", juce::Colours::magenta.brighter());
 
 
     auto centerScreen = getLocalBounds().getCentre().toFloat();
@@ -137,25 +139,20 @@ void HUDComponents::paint(juce::Graphics& g) {
     int portY = leftRollRect.getY();
     int susY = portY + badgeH + badgePadding;
 
-    
-
     if (audioProcessor.currentOutputMode == OutputMode::MIDI_Only) {
         bool susMappedLeft = isLeftHand(GestureTarget::Sustain);
         bool susMappedRight = isRightHand(GestureTarget::Sustain);
 
         drawStaticBadge("SUSTAIN", sustainVal, juce::Rectangle<int>(leftX, susY, badgeW, badgeH), susMappedLeft, audioProcessor.leftHand.isPresent);
         drawStaticBadge("SUSTAIN", sustainVal, juce::Rectangle<int>(rightX, susY, badgeW, badgeH), susMappedRight, audioProcessor.rightHand.isPresent);
-        
+
         bool portMappedLeft = isLeftHand(GestureTarget::Portamento);
         bool portMappedRight = isRightHand(GestureTarget::Portamento);
 
         drawStaticBadge("PORTAMENTO", portamentoVal, juce::Rectangle<int>(leftX, portY, badgeW, badgeH), portMappedLeft, audioProcessor.leftHand.isPresent);
         drawStaticBadge("PORTAMENTO", portamentoVal, juce::Rectangle<int>(rightX, portY, badgeW, badgeH), portMappedRight, audioProcessor.rightHand.isPresent);
     }
-
-    
 }
-
 
 void HUDComponents::drawParameterHUD(juce::Graphics& g, juce::Rectangle<int> bounds, GestureTarget target, float value, bool isVertical, juce::String label, juce::Colour color, bool isLeftHand) {
     g.setColour(juce::Colours::black.withAlpha(0.5f));
@@ -180,7 +177,7 @@ void HUDComponents::drawParameterHUD(juce::Graphics& g, juce::Rectangle<int> bou
             drawUnquantisedPitch(g, bounds, value, isVertical, color);
         }
         else {
-            drawScaleBlocks(g, bounds, value, isVertical, color, isLeftHand); // <--- PASSING THE HAND DATA DOWN!
+            drawScaleBlocks(g, bounds, value, isVertical, color, isLeftHand);
         }
         break;
     case GestureTarget::Sustain:
@@ -196,33 +193,10 @@ void HUDComponents::drawParameterHUD(juce::Graphics& g, juce::Rectangle<int> bou
     }
 }
 
-std::vector<int> HUDComponents::getScaleIntervals(int scaleType) {
-    switch (scaleType) {
-    case 1: return { 0, 2, 4, 5, 7, 9, 11 };       // Major
-    case 2: return { 0, 2, 3, 5, 7, 8, 10 };       // Minor
-    case 3: return { 0, 2, 4, 7, 9 };              // Major Pentatonic 
-    case 4: return { 0, 3, 5, 7, 10 };             // Minor Pentatonic
-    case 5: return { 0, 3, 5, 6, 7, 10 };          // Blues
-    case 6: return { 0, 2, 3, 5, 7, 9, 10 };       // Dorian
-    case 7: return { 0, 2, 4, 5, 7, 9, 10 };       // Mixolydian
-    case 8: return { 0, 2, 4, 6, 7, 9, 11 };       // Lydian
-    case 9: return { 0, 1, 3, 5, 7, 8, 10 };       // Phrygian
-    case 10: return { 0, 2, 3, 5, 7, 8, 11 };      // Harmonic Minor
-    case 11: return { 0, 1, 3, 5, 6, 8, 10 };      // Locrian
-    case 13: return audioProcessor.customScaleIntervals;
-    case 12:
-
-    default: {                                     // Chromatic (0)
-        std::vector<int> chromatic;
-        for (int i = 0; i < 12; ++i) chromatic.push_back(i);
-        return chromatic;
-    }
-    }
-}
-
-
 void HUDComponents::drawScaleBlocks(juce::Graphics& g, juce::Rectangle<int> bounds, float value, bool isVertical, juce::Colour color, bool isLeftHand) {
-    std::vector<int> intervals = getScaleIntervals(audioProcessor.scaleType);
+    ScaleQuantiser quantiser;
+    quantiser.customIntervals = audioProcessor.customScaleIntervals;
+    std::vector<int> intervals = quantiser.getScaleIntervals(audioProcessor.scaleType);
 
     int minNote, maxNote;
     if (audioProcessor.currentRangeMode == MusicalRangeMode::OctaveRange) {
@@ -236,18 +210,12 @@ void HUDComponents::drawScaleBlocks(juce::Graphics& g, juce::Rectangle<int> boun
     }
 
     bool engineOn = audioProcessor.chordEngineEnabled.load() && (audioProcessor.currentOutputMode != OutputMode::OSC_Only);
-
-    // --- THE HEADROOM & FLOOR-ROOM FIX ---
-    // Store the actual physical boundaries so your hand math stays perfect
     int physicalMinNote = minNote;
     int physicalMaxNote = maxNote;
-
     bool dropBassOn = false;
-
     std::array<bool, 7> activeRoots = { true, true, true, true, true, true, true };
 
     if (engineOn) {
-        // Fetch the specific hand's data
         if (isLeftHand) {
             activeRoots = { audioProcessor.leftRootI.load(), audioProcessor.leftRootII.load(), audioProcessor.leftRootIII.load(), audioProcessor.leftRootIV.load(), audioProcessor.leftRootV.load(), audioProcessor.leftRootVI.load(), audioProcessor.leftRootVII.load() };
             dropBassOn = audioProcessor.leftDropBass.load();
@@ -257,16 +225,12 @@ void HUDComponents::drawScaleBlocks(juce::Graphics& g, juce::Rectangle<int> boun
             dropBassOn = audioProcessor.rightDropBass.load();
         }
 
-        // Expand the visual grid up by 2 octaves for chord extensions
         maxNote += 24;
-
-        // Expand the visual grid down by 1 octave if Drop Bass is active!
         if (dropBassOn) {
             minNote -= 12;
         }
     }
 
-    // 1. DRAW THE FULL EXTENDED SCALE GRID
     std::vector<int> displayNotes;
     for (int n = minNote; n <= maxNote; ++n) {
         int relativeNote = (n - audioProcessor.rootNote) % 12;
@@ -285,8 +249,6 @@ void HUDComponents::drawScaleBlocks(juce::Graphics& g, juce::Rectangle<int> boun
     if (displayNotes.empty()) displayNotes.push_back(minNote);
 
     int totalBlocks = (int)displayNotes.size();
-
-    // 2. Fetch active playing notes
     std::atomic<int>* activeNotes = isLeftHand ? audioProcessor.activeLeftNotes : audioProcessor.activeRightNotes;
 
     bool anyNotePlaying = false;
@@ -297,13 +259,7 @@ void HUDComponents::drawScaleBlocks(juce::Graphics& g, juce::Rectangle<int> boun
         }
     }
 
-    // 3. THE MAGIC CURSOR: Maps to 'physicalMinNote' and 'physicalMaxNote'
-    // This perfectly isolates your hand mapping to the real physical space,
-    // while the UI draws the lush extra octaves around it!
     float exactNote = juce::jmap(value, 0.0f, 1.0f, (float)physicalMinNote, (float)physicalMaxNote);
-    ScaleQuantiser quantiser;
-    quantiser.customIntervals = audioProcessor.customScaleIntervals;
-
     int currentHoverNote = -1;
     if (value >= 0.0f) {
         currentHoverNote = quantiser.getQuantisedNote(exactNote / 127.0f, audioProcessor.rootNote, audioProcessor.scaleType, activeRoots);
@@ -327,8 +283,6 @@ void HUDComponents::drawScaleBlocks(juce::Graphics& g, juce::Rectangle<int> boun
         }
 
         blockRect.reduce(1.0f, 1.0f);
-
-        // Highlight Logic
         bool isHighlighted = false;
 
         if (anyNotePlaying) {

@@ -71,7 +71,8 @@ public:
             if (audioProcessor.currentOutputMode == OutputMode::OSC_Only) {
                 audioProcessor.oscManager.routeMessage(
                     target, value, "global",
-                    audioProcessor.rootNote, audioProcessor.scaleType, audioProcessor.octaveRange, audioProcessor.currentRangeMode, audioProcessor.startNote, audioProcessor.endNote
+                    audioProcessor.rootNote, audioProcessor.scaleType, audioProcessor.octaveRange, audioProcessor.currentRangeMode, audioProcessor.startNote, audioProcessor.endNote,
+					audioProcessor.activeLeftNotes
                 );
             }
             };
@@ -88,7 +89,7 @@ public:
         delayDial.onValueChange = [this, sendGlobalOSC] {
             audioProcessor.staticDelay = (float)delayDial.getValue();
             sendGlobalOSC(GestureTarget::Delay, audioProcessor.staticDelay);
-            }; // <-- FIXED MISSING BRACKET
+            }; 
 
         modDial.onValueChange = [this, sendGlobalOSC] {
             audioProcessor.staticModulation = (float)modDial.getValue();
@@ -98,7 +99,7 @@ public:
         distDial.onValueChange = [this, sendGlobalOSC] {
             audioProcessor.staticDistortion = (float)distDial.getValue();
             sendGlobalOSC(GestureTarget::Distortion, audioProcessor.staticDistortion);
-            }; // <-- FIXED MISSING BRACKET
+            }; 
 
         exprDial.onValueChange = [this, sendGlobalOSC] {
             audioProcessor.staticExpression = (float)exprDial.getValue();
@@ -179,17 +180,17 @@ public:
                 s4.setBounds(a4.removeFromTop(rowH - 30).withSizeKeepingCentre(100, 100)); l4.setBounds(a4.withSizeKeepingCentre(100, 30));
             };
 
-        // Lay out the first row using the Volume and Pan, but use Mod/Expr for the layout math
+        // Lay out the first row using the volume and pan, but use Mod/Expr for the layout 
         layoutRow(area.removeFromTop(rowH), volumeDial, volumeLabel, panDial, panLabel, modDial, modLabel, exprDial, exprLabel);
 
-        // Now physically move the Delay and Dist dials to the EXACT same spot as the Mod/Expr dials
+        // Now move the Delay and Dist dials to the EXACT same spot as the Mod/Expr dials
         delayDial.setBounds(modDial.getBounds());
         delayLabel.setBounds(modLabel.getBounds());
 
         distDial.setBounds(exprDial.getBounds());
         distLabel.setBounds(exprLabel.getBounds());
 
-        // Continue with other rows...
+        // the rest
         layoutRow(area.removeFromTop(rowH), cutoffDial, cutoffLabel, resDial, resLabel, attackDial, attackLabel, releaseDial, releaseLabel);
         layoutRow(area.removeFromTop(rowH), reverbDial, reverbLabel, chorusDial, chorusLabel, vibDial, vibLabel, waveDial, waveLabel);
     }

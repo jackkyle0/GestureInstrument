@@ -1,17 +1,19 @@
 #pragma once
 #include <JuceHeader.h>
 #include <atomic>
-#include "../../Source/OSC/OSCManager.h" // Adjust path as needed
+#include "../../Source/OSC/OSCManager.h"
 
 class OscManagerTests : public juce::UnitTest, private juce::OSCReceiver::ListenerWithOSCAddress<juce::OSCReceiver::RealtimeCallback> {
 public:
     OscManagerTests() : juce::UnitTest("OSC Manager Network and Formatting Tests") {}
 
-    // --- OSC Interception Memory ---
+    // OSC memory
     juce::String lastReceivedAddress;
     float lastReceivedFloat = -999.0f;
 
     std::atomic<bool> messageReceived{ false };
+    std::atomic<int> activeLeftNotes[8];
+    std::atomic<int> activeRightNotes[8];
 
     void oscMessageReceived(const juce::OSCMessage& message) override {
         lastReceivedAddress = message.getAddressPattern().toString();
@@ -22,26 +24,25 @@ public:
     }
 
     void runTest() override {
-        // --- Setup the Test Network ---
+        // Setup test
         int testPort = 9001;
         juce::OSCReceiver testReceiver;
         testReceiver.connect(testPort);
 
-        // Tell the receiver to listen to these specific test addresses
+        // Listen to these addresses
         testReceiver.addListener(this, "/left/pitch");
         testReceiver.addListener(this, "/left/note");
         testReceiver.addListener(this, "/right/pitch");
         testReceiver.addListener(this, "/left/modulation");
 
-        beginTest("1. Address Formatting and Float32 Verification");
-        {
+        beginTest("1. Address Formatting and Float32 Verification"); {
             OscManager osc;
             osc.connectSender("127.0.0.1", testPort);
 
             messageReceived = false;
 
-            // Bypass the quantiser (Theremin mode, type 12)
-            osc.routeMessage(GestureTarget::Pitch, 0.5f, "left", 0, 12, 1, MusicalRangeMode::OctaveRange, 60, 72);
+            // Bypass the quantiser
+            osc.routeMessage(GestureTarget::Pitch, 0.5f, "left", 0, 12, 1, MusicalRangeMode::OctaveRange, 60, 72, activeLeftNotes);
 
             int timeout = 50;
             while (!messageReceived && timeout > 0) { juce::Thread::sleep(10); timeout--; }
@@ -51,8 +52,7 @@ public:
             expect(std::abs(lastReceivedFloat - 66.0f) < 0.001f, "Payload float calculation (Theremin Mode) failed.");
         }
 
-        beginTest("2. Network State Tracking (Spam Prevention)");
-        {
+        beginTest("2. Network State Tracking (Spam Prevention)"); {
             OscManager osc;
             osc.connectSender("127.0.0.1", testPort);
             messageReceived = false;
@@ -64,35 +64,40 @@ public:
             expectEquals(lastReceivedAddress, juce::String("/left/note"), "Panic address formatting incorrect.");
             expectEquals(lastReceivedFloat, 0.0f, "Panic payload must be strictly 0.0f.");
 
-            // --- Spam Prevention Test ---
+            // Spam prevention test
             HandData emptyHand;
             emptyHand.isPresent = true;
 
-            // First call: Should send 1.0f
+            // Should send 1.0f
             messageReceived = false;
-            osc.processHandData(emptyHand, emptyHand, 1.0f, 0, 1, 0, 1, 0, 1, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, 60, 1, 1, MusicalRangeMode::OctaveRange, 60, 72, false);
+            osc.processHandData(emptyHand, emptyHand, 1.0f, 0, 1, 0, 1, 0, 1, 1.0f, 1.0f, 1.0f, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, 
+                GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, 
+                GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, 
+                GestureTarget::None, GestureTarget::None, 60, 1, 1, MusicalRangeMode::OctaveRange, 60, 72, false, activeLeftNotes, activeRightNotes);
 
             timeout = 10;
             while (!messageReceived && timeout > 0) { juce::Thread::sleep(10); timeout--; }
             expect(messageReceived, "Failed to send initial default note state.");
 
-            // Second call: Exact same state
+            // exact same state
             messageReceived = false;
-            osc.processHandData(emptyHand, emptyHand, 1.0f, 0, 1, 0, 1, 0, 1, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, 60, 1, 1, MusicalRangeMode::OctaveRange, 60, 72, false);
+            osc.processHandData(emptyHand, emptyHand, 1.0f, 0, 1, 0, 1, 0, 1, 1.0f, 1.0f, 1.0f, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, 
+                GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, 
+                GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, GestureTarget::None, 
+                60, 1, 1, MusicalRangeMode::OctaveRange, 60, 72, false, activeLeftNotes, activeRightNotes);
 
             timeout = 10;
             while (!messageReceived && timeout > 0) { juce::Thread::sleep(10);  timeout--; }
             expect(!messageReceived, "Spam Prevention Failed! System sent duplicate identical state packets to PD.");
         }
 
-        beginTest("3. Right Hand Address Separation");
-        {
+        beginTest("3. Right Hand Address Separation"); {
             OscManager osc;
             osc.connectSender("127.0.0.1", testPort);
             messageReceived = false;
 
             // Force a right hand message
-            osc.routeMessage(GestureTarget::Pitch, 0.5f, "right", 0, 12, 1, MusicalRangeMode::OctaveRange, 60, 72);
+            osc.routeMessage(GestureTarget::Pitch, 0.5f, "right", 0, 12, 1, MusicalRangeMode::OctaveRange, 60, 72, activeLeftNotes);
 
             int timeout = 50;
             while (!messageReceived && timeout > 0) { juce::Thread::sleep(10); timeout--; }
@@ -101,9 +106,6 @@ public:
             expectEquals(lastReceivedAddress, juce::String("/right/pitch"), "Right hand address formatting failed to differentiate from left.");
         }
     }
-
-
-       
 };
 
 static OscManagerTests oscManagerTestsInstance;

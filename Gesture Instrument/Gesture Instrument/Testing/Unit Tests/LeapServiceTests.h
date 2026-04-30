@@ -1,6 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
-#include "../../Source/Helpers/LeapService.h" // Adjust path as needed
+#include "../../Source/Helpers/LeapService.h" 
 
 class LeapServiceTests : public juce::UnitTest {
 public:
@@ -14,35 +14,33 @@ public:
             LeapService service;
             HandData leftHand, rightHand;
 
-            // --- BUILD THE MOCK LEAP HARDWARE EVENT ---
+            // Build mock leap event
             LEAP_HAND mockHand = {};
             mockHand.type = eLeapHandType_Right; // Specify this is a right hand
             mockHand.palm.position.x = 120.5f;
             mockHand.palm.position.y = 300.0f;
             mockHand.palm.position.z = -50.2f;
             mockHand.grab_strength = 0.45f;
-            mockHand.pinch_strength = 0.85f; // Greater than 0.8 to trigger isPinching!
+            mockHand.pinch_strength = 0.85f; // Greater than 0.8 to trigger isPinching
 
             LEAP_TRACKING_EVENT mockEvent = {};
             mockEvent.nHands = 1;
             mockEvent.pHands = &mockHand;
 
-            // --- EXECUTE ---
-            // Feed the fake hardware data into your conversion logic
+            // Execute
             service.convertLeapEventToHandData(&mockEvent, leftHand, rightHand);
 
-            // --- ASSERTIONS ---
-            expect(rightHand.isPresent, "The Right Hand should be marked as present.");
-            expect(!leftHand.isPresent, "The Left Hand should be marked as absent.");
+            expect(rightHand.isPresent, "The Right Hand should be marked as present");
+            expect(!leftHand.isPresent, "The Left Hand should be marked as absent");
 
-            // Check Spatial Data
+            // Check spatial data
             expectEquals(rightHand.currentHandPositionX, 120.5f, "X coordinate extraction failed.");
             expectEquals(rightHand.currentHandPositionY, 300.0f, "Y coordinate extraction failed.");
             expectEquals(rightHand.currentHandPositionZ, -50.2f, "Z coordinate extraction failed.");
 
-            // Check Gestures
-            expectEquals(rightHand.grabStrength, 0.45f, "Grab strength extraction failed.");
-            expect(rightHand.isPinching, "Pinch strength of 0.85 should trigger isPinching = true.");
+            // Check gestures
+            expectEquals(rightHand.grabStrength, 0.45f, "Grab strength extraction failed");
+            expect(rightHand.isPinching, "Pinch strength of 0.85 should trigger isPinching = true");
         }
 
         beginTest("2. Hardware Disconnect");
@@ -50,7 +48,7 @@ public:
             LeapService service;
             HandData leftHand, rightHand;
 
-            // First, pretend both hands are visible
+            // both hands visable
             LEAP_HAND dualHands[2] = {};
             dualHands[0].type = eLeapHandType_Left;
             dualHands[1].type = eLeapHandType_Right;
@@ -62,15 +60,15 @@ public:
             service.convertLeapEventToHandData(&activeEvent, leftHand, rightHand);
             expect(leftHand.isPresent && rightHand.isPresent, "Setup failed: Both hands should be active.");
 
-            // Now, simulate the user pulling their hands completely out of the sensor view
+            // move hands from sensor
             LEAP_TRACKING_EVENT emptyEvent = {};
-            emptyEvent.nHands = 0; // ZERO hands detected!
+            emptyEvent.nHands = 0; 
             emptyEvent.pHands = nullptr;
 
             service.convertLeapEventToHandData(&emptyEvent, leftHand, rightHand);
 
-            expect(!leftHand.isPresent, "Left hand failed to clear presence flag on empty frame.");
-            expect(!rightHand.isPresent, "Right hand failed to clear presence flag on empty frame.");
+            expect(!leftHand.isPresent, "Left hand failed to clear presence on empty frame.");
+            expect(!rightHand.isPresent, "Right hand failed to clear presence on empty frame.");
         }
     }
 };

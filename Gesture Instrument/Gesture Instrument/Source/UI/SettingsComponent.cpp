@@ -11,11 +11,12 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
     auto setupMpeBox = [&](juce::ComboBox& cb, juce::Label& lbl, std::atomic<int>& target) {
         addAndMakeVisible(lbl);
         addAndMakeVisible(cb);
-        cb.addItem("Finger X-Axis", 1);
-        cb.addItem("Finger Y-Axis", 2);
-        cb.addItem("Finger Z-Axis", 3);
-        cb.setSelectedId(target.load(), juce::dontSendNotification);
-        cb.onChange = [this, &cb, &target] { target.store(cb.getSelectedId()); };
+        cb.addItem("None", 1);
+        cb.addItem("Finger X-Axis", 2);
+        cb.addItem("Finger Y-Axis", 3);
+        cb.addItem("Finger Z-Axis", 4);
+        cb.setSelectedId(target.load() + 1, juce::dontSendNotification);
+        cb.onChange = [this, &cb, &target] { target.store(cb.getSelectedId() - 1); };
         };
 
     setupMpeBox(mpePitchSelector, mpePitchLabel, audioProcessor.mpePitchBendAxis);
@@ -25,7 +26,6 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
     addAndMakeVisible(mpeButton);
     mpeButton.setToggleState(p.isMpeEnabled, juce::dontSendNotification);
     mpeButton.setColour(juce::ToggleButton::textColourId, juce::Colours::white);
-
     mpeButton.onClick = [this] {
         audioProcessor.isMpeEnabled = mpeButton.getToggleState();
         bool isMpe = audioProcessor.isMpeEnabled;
@@ -56,9 +56,11 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
 
     addAndMakeVisible(invertTriggerButton);
     invertTriggerButton.setToggleState(audioProcessor.invertNoteTrigger, juce::dontSendNotification);
-    invertTriggerButton.onClick = [this] {
-        audioProcessor.invertNoteTrigger = invertTriggerButton.getToggleState();
-        };
+    invertTriggerButton.onClick = [this] { audioProcessor.invertNoteTrigger = invertTriggerButton.getToggleState(); };
+
+    addAndMakeVisible(midiLabel);
+    midiLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+    midiLabel.setFont(juce::Font(14.0f, juce::Font::bold));
 
     addAndMakeVisible(modeSelector);
     modeSelector.addItem("OSC", 1);
@@ -69,15 +71,23 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
         audioProcessor.currentOutputMode = (modeSelector.getSelectedId() == 1) ? OutputMode::OSC_Only : OutputMode::MIDI_Only;
 
         bool isMidi = (audioProcessor.currentOutputMode == OutputMode::MIDI_Only);
-
         bool isStandalone = juce::JUCEApplicationBase::isStandaloneApp();
-        instrumentSelector.setVisible(isStandalone);
-        instrumentLabel.setVisible(isStandalone);
+
+        instrumentSelector.setVisible(true);
+        instrumentLabel.setVisible(true);
 
         instrumentSelector.setEnabled(isMidi && isStandalone);
         instrumentLabel.setEnabled(isMidi && isStandalone);
         invertTriggerButton.setEnabled(isMidi);
         mpeButton.setEnabled(isMidi);
+
+        mpeRoutingLabel.setEnabled(isMidi);
+        mpePitchLabel.setEnabled(isMidi);
+        mpePitchSelector.setEnabled(isMidi);
+        mpeTimbreLabel.setEnabled(isMidi);
+        mpeTimbreSelector.setEnabled(isMidi);
+        mpePressureLabel.setEnabled(isMidi);
+        mpePressureSelector.setEnabled(isMidi);
 
         bool isOsc = !isMidi;
         leftXRow.updateList(isOsc); leftYRow.updateList(isOsc); leftZRow.updateList(isOsc);
@@ -89,22 +99,35 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
         rightWristRow.updateList(isOsc); rightGrabRow.updateList(isOsc); rightPinchRow.updateList(isOsc);
         rightThumbRow.updateList(isOsc); rightIndexRow.updateList(isOsc); rightMiddleRow.updateList(isOsc);
         rightRingRow.updateList(isOsc); rightPinkyRow.updateList(isOsc);
+
+        bool enableFingers = isOsc || !audioProcessor.isMpeEnabled;
+
+        leftThumbRow.setEnabled(enableFingers);
+        leftIndexRow.setEnabled(enableFingers);
+        leftMiddleRow.setEnabled(enableFingers);
+        leftRingRow.setEnabled(enableFingers);
+        leftPinkyRow.setEnabled(enableFingers);
+
+        rightThumbRow.setEnabled(enableFingers);
+        rightIndexRow.setEnabled(enableFingers);
+        rightMiddleRow.setEnabled(enableFingers);
+        rightRingRow.setEnabled(enableFingers);
+        rightPinkyRow.setEnabled(enableFingers);
         };
 
     modeSelector.onChange();
 
     addAndMakeVisible(visualsLabel);
-    visualsLabel.setText("VISUALS", juce::dontSendNotification);
     visualsLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
     visualsLabel.setFont(juce::Font(14.0f, juce::Font::bold));
 
     addAndMakeVisible(standaloneLabel);
-    standaloneLabel.setText("STANDALONE SYNTH", juce::dontSendNotification);
     standaloneLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
     standaloneLabel.setFont(juce::Font(14.0f, juce::Font::bold));
 
     addAndMakeVisible(modeLabel);
-    modeLabel.setText("Output Mode:", juce::dontSendNotification);
+    modeLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+    modeLabel.setFont(juce::Font(14.0f, juce::Font::bold));
 
     addAndMakeVisible(enableGestureSwitchButton);
     enableGestureSwitchButton.setToggleState(audioProcessor.isGestureToMouseEnabled.load(), juce::dontSendNotification);
@@ -117,12 +140,20 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
     gestureTimerSlider.setTextValueSuffix("s");
     gestureTimerSlider.onValueChange = [this] { audioProcessor.virtualMouseHoldTime = (float)gestureTimerSlider.getValue(); };
 
+    addAndMakeVisible(virtualMouseLabel);
+    virtualMouseLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+    virtualMouseLabel.setFont(juce::Font(14.0f, juce::Font::bold));
+    
     addAndMakeVisible(gestureTypeSelector);
     gestureTypeSelector.addItem("Both Fists", 1);
     gestureTypeSelector.addItem("Right Fist", 2);
     gestureTypeSelector.addItem("Left Fist", 3);
     gestureTypeSelector.setSelectedId(1);
     gestureTypeSelector.onChange = [this] { audioProcessor.virtualMouseGestureType = gestureTypeSelector.getSelectedId(); };
+
+    addAndMakeVisible(presetLabel);
+    presetLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+    presetLabel.setFont(juce::Font(14.0f, juce::Font::bold));
 
     addAndMakeVisible(savePresetButton);
     savePresetButton.onClick = [this] {
@@ -194,6 +225,22 @@ SettingsComponent::SettingsComponent(GestureInstrumentAudioProcessor& p)
         audioProcessor.currentInstrument = instrumentSelector.getSelectedId();
         audioProcessor.instrumentChanged = true;
         };
+
+    addAndMakeVisible(advCalibLabel);
+    advCalibLabel.setColour(juce::Label::textColourId, juce::Colours::orange);
+    advCalibLabel.setFont(juce::Font(14.0f, juce::Font::bold));
+
+    auto setupAdvSlider = [this](LabeledSlider& slider, std::atomic<float>& target) {
+        addAndMakeVisible(slider);
+        slider.slider.setValue(target.load(), juce::dontSendNotification);
+        slider.slider.onValueChange = [&slider, &target] { target.store((float)slider.slider.getValue()); };
+        };
+
+    setupAdvSlider(wristMultControl, audioProcessor.wristMultiplier);
+    setupAdvSlider(grabMultControl, audioProcessor.grabMultiplier);
+    setupAdvSlider(pinchMultControl, audioProcessor.pinchMultiplier);
+
+	mpeButton.onClick();
 }
 
 SettingsComponent::~SettingsComponent() {}
@@ -238,41 +285,48 @@ void SettingsComponent::resized() {
     int spacing = 20;
     int colW = (bounds.getWidth() - (spacing * 3)) / 4;
 
-    // THE FIX PART 1: Only shrink the left/right padding here, NOT the top/bottom!
     auto col1 = bounds.removeFromLeft(colW).reduced(15, 0); bounds.removeFromLeft(spacing);
     auto col2 = bounds.removeFromLeft(colW).reduced(15, 0); bounds.removeFromLeft(spacing);
     auto col3 = bounds.removeFromLeft(colW).reduced(15, 0); bounds.removeFromLeft(spacing);
     auto col4 = bounds.removeFromLeft(colW).reduced(15, 0);
 
-    // THE FIX PART 2: Manually push every column down by 55px so they safely clear the painted titles and line!
     auto prepareCol = [](juce::Rectangle<int>& col) {
-        col.removeFromTop(55);     // Clears the header line
-        col.removeFromBottom(15);  // Gives a little padding at the floor
+        col.removeFromTop(55);
+        col.removeFromBottom(15);
         };
     prepareCol(col1); prepareCol(col2); prepareCol(col3); prepareCol(col4);
 
-    // ==========================================
-    // COLUMN 1: SYSTEM & VISUALS
-    // ==========================================
+    // Col 1: System and Visuals
     modeLabel.setBounds(col1.removeFromTop(25));
     modeSelector.setBounds(col1.removeFromTop(25));
-    col1.removeFromTop(15);
+    col1.removeFromTop(20);
 
+    presetLabel.setBounds(col1.removeFromTop(25));
     savePresetButton.setBounds(col1.removeFromTop(25));
     col1.removeFromTop(5);
     loadPresetButton.setBounds(col1.removeFromTop(25));
-
-    col1.removeFromTop(30);
+    col1.removeFromTop(40);
 
     visualsLabel.setBounds(col1.removeFromTop(20));
     floorShadowToggle.setBounds(col1.removeFromTop(25));
     wallShadowToggle.setBounds(col1.removeFromTop(25));
     splitXAxisToggle.setBounds(col1.removeFromTop(25));
 
-    // ==========================================
-    // COLUMNS 2 & 3: HAND MAPPINGS
-    // ==========================================
-    // THE FIX PART 3: Make the rows 35px high with a 5px gap so all 11 rows fit safely on screen!
+    col1.removeFromTop(20);
+    advCalibLabel.setBounds(col1.removeFromTop(20));
+    wristMultControl.setBounds(col1.removeFromTop(25));
+    col1.removeFromTop(5);
+    grabMultControl.setBounds(col1.removeFromTop(25));
+    col1.removeFromTop(5);
+    pinchMultControl.setBounds(col1.removeFromTop(25));
+
+    col1.removeFromTop(20); // Spacing
+    virtualMouseLabel.setBounds(col1.removeFromTop(20));
+    enableGestureSwitchButton.setBounds(col1.removeFromTop(25));
+    gestureTypeSelector.setBounds(col1.removeFromTop(25));
+    gestureTimerSlider.setBounds(col1.removeFromTop(25));
+
+    // Cols 2+3: Parameter mapping
     auto stackRow = [](juce::Rectangle<int>& area, juce::Component& c) {
         c.setBounds(area.removeFromTop(35));
         area.removeFromTop(5);
@@ -280,7 +334,7 @@ void SettingsComponent::resized() {
 
     stackRow(col2, leftXRow); stackRow(col2, leftYRow); stackRow(col2, leftZRow);
     stackRow(col2, leftWristRow); stackRow(col2, leftGrabRow); stackRow(col2, leftPinchRow);
-    col2.removeFromTop(8); // Small visual gap between spatial and finger mappings
+    col2.removeFromTop(8);
     stackRow(col2, leftThumbRow); stackRow(col2, leftIndexRow); stackRow(col2, leftMiddleRow);
     stackRow(col2, leftRingRow); stackRow(col2, leftPinkyRow);
 
@@ -290,16 +344,15 @@ void SettingsComponent::resized() {
     stackRow(col3, rightThumbRow); stackRow(col3, rightIndexRow); stackRow(col3, rightMiddleRow);
     stackRow(col3, rightRingRow); stackRow(col3, rightPinkyRow);
 
-    // ==========================================
-    // COLUMN 4: MIDI & MPE
-    // ==========================================
+    // Col 4: MIDI/MPE mapping
     if (instrumentSelector.isVisible()) {
-        standaloneLabel.setBounds(col4.removeFromTop(20));
-        instrumentLabel.setBounds(col4.removeFromTop(20));
+        standaloneLabel.setBounds(col4.removeFromTop(15));
+        instrumentLabel.setBounds(col4.removeFromTop(15));
         instrumentSelector.setBounds(col4.removeFromTop(25));
         col4.removeFromTop(20);
     }
 
+    midiLabel.setBounds(col4.removeFromTop(25));
     invertTriggerButton.setBounds(col4.removeFromTop(25));
     col4.removeFromTop(20);
 
@@ -330,8 +383,14 @@ void SettingsComponent::refreshUI() {
     enableGestureSwitchButton.setToggleState(audioProcessor.isGestureToMouseEnabled.load(), juce::dontSendNotification);
     gestureTypeSelector.setSelectedId(audioProcessor.virtualMouseGestureType, juce::dontSendNotification);
     gestureTimerSlider.setValue(audioProcessor.virtualMouseHoldTime, juce::dontSendNotification);
+    wristMultControl.slider.setValue(audioProcessor.wristMultiplier.load(), juce::dontSendNotification);
+    grabMultControl.slider.setValue(audioProcessor.grabMultiplier.load(), juce::dontSendNotification);
+    pinchMultControl.slider.setValue(audioProcessor.pinchMultiplier.load(), juce::dontSendNotification);
+    mpePitchSelector.setSelectedId(audioProcessor.mpePitchBendAxis.load() + 1, juce::dontSendNotification);
+    mpeTimbreSelector.setSelectedId(audioProcessor.mpeTimbreAxis.load() + 1, juce::dontSendNotification);
+    mpePressureSelector.setSelectedId(audioProcessor.mpePressureAxis.load() + 1, juce::dontSendNotification);
 
-    mpeButton.onClick(); // Forces the enable/disable logic to refresh correctly
+    mpeButton.onClick();
 
     bool isOsc = (audioProcessor.currentOutputMode == OutputMode::OSC_Only);
     leftXRow.updateList(isOsc); leftYRow.updateList(isOsc); leftZRow.updateList(isOsc);

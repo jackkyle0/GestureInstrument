@@ -6,9 +6,7 @@
 #include "UI/HUDComponents.h"
 #include "UI/VirtualCursor.h"
 #include "UI/StaticDialsComponent.h"
-#include "UI/WaveformComponent.h"
 #include "UI/ChordBuilder.h"
-
 
 struct Point3D {
     float x, y, z;
@@ -19,7 +17,6 @@ struct CustomScaleEditor : public juce::Component {
     std::function<void(std::vector<int>)> onScaleChanged;
 
     CustomScaleEditor() {
-        // Labels for the 12 intervals (Root, minor 2nd, Major 2nd, etc.)
         juce::StringArray labels = { "1", "b2", "2", "b3", "3", "4", "b5", "5", "b6", "6", "b7", "7" };
 
         for (int i = 0; i < 12; ++i) {
@@ -48,7 +45,6 @@ struct CustomScaleEditor : public juce::Component {
             if (noteButtons[i].getToggleState()) newScale.push_back(i);
         }
 
-        // Failsafe: A scale must have at least 1 note, so we force the Root note if they turn everything off
         if (newScale.empty()) {
             newScale.push_back(0);
             noteButtons[0].setToggleState(true, juce::dontSendNotification);
@@ -66,8 +62,7 @@ struct CustomScaleEditor : public juce::Component {
     }
 };
 
-class GestureInstrumentAudioProcessorEditor : public juce::AudioProcessorEditor,
-    public juce::Timer {
+class GestureInstrumentAudioProcessorEditor : public juce::AudioProcessorEditor, public juce::Timer {
 public:
     GestureInstrumentAudioProcessorEditor(GestureInstrumentAudioProcessor&);
     ~GestureInstrumentAudioProcessorEditor() override;
@@ -75,23 +70,19 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
     void timerCallback() override;
-
-
+    bool keyPressed(const juce::KeyPress& key) override;
 
     class CalibrationOverlay : public juce::Component {
     public:
         CalibrationOverlay() {
             addAndMakeVisible(cancelButton);
             cancelButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkred);
-            cancelButton.onClick = [this] {
-                if (onCancel) onCancel();
-                };
+            cancelButton.onClick = [this] { if (onCancel) onCancel(); };
         }
 
         void setProgress(float p);
         void paint(juce::Graphics& g) override;
         void resized() override {
-            // Place the cancel button nicely at the bottom center of the screen
             auto bounds = getLocalBounds();
             cancelButton.setBounds(bounds.getCentreX() - 60, bounds.getBottom() - 100, 120, 35);
         }
@@ -102,50 +93,44 @@ public:
         juce::TextButton cancelButton{ "Cancel (Esc)" };
     };
 
-    bool keyPressed(const juce::KeyPress& key) override;
-
-
 private:
     GestureInstrumentAudioProcessor& audioProcessor;
 
-    StaticDialsComponent staticDialsPage;
-    juce::TextButton staticDialsButton{ "Dials" };
-
-    // Overlays
+    // Pages and overlays
     juce::OpenGLContext openGLContext;
     SettingsComponent settingsPage;
     juce::Viewport settingsViewport;
+    StaticDialsComponent staticDialsPage;
+    ChordBuilder chordBuilderPage;
     HUDComponents hud;
     VirtualCursor virtualCursor;
     CalibrationOverlay calibrationOverlay;
+    CustomScaleEditor customScaleUI;
 
     // Buttons and labels
     juce::TextButton settingsButton{ "Settings" };
     juce::TextButton calibrateButton{ "Calibrate Area" };
     juce::TextButton editModeButton{ "Virtual Mouse" };
+    juce::TextButton staticDialsButton{ "Dials" };
+    juce::TextButton chordBuilderButton{ "Chord Builder" };
+    juce::TextButton maximizeButton{ "Maximize" };
     juce::ToggleButton showNoteNamesButton{ "Show Note Names" };
     juce::ToggleButton muteButton{ "Mute (Space)" };
+
     juce::Label connectionStatusLabel;
+    juce::Label scaleLabel;
+    juce::Label keyLabel;
+    juce::Label baseOctaveLabel;
+    juce::Label octaveLabel;
 
     // Selectors
     juce::ComboBox rootSelector;
     juce::ComboBox scaleSelector;
-    juce::Label scaleLabel;
-    juce::Label keyLabel;   // <-- Add this right next to your scaleLabel
-
-    juce::Label baseOctaveLabel;
-
-
-    // Musical Range Selectors
     juce::ComboBox rangeModeSelector;
     juce::ComboBox octaveSelector;
     juce::ComboBox startNoteSelector;
     juce::ComboBox endNoteSelector;
-    juce::Label octaveLabel;
-
     juce::ComboBox baseOctaveSelector;
-
-
 
     // Sliders
     LabeledSlider xMinControl;
@@ -155,54 +140,38 @@ private:
     LabeledSlider zMinControl;
     LabeledSlider zMaxControl;
 
-
-
-
- 
-
+    // State tracking
     bool isEditMode = false;
-    float menuGestureTimer = 0.0f;
+    bool isMaximized = false;
     bool menuGestureFired = false;
+    float menuGestureTimer = 0.0f;
+    int lastKnownOutputMode = -1;
+
+    juce::Rectangle<int> previousSize{ 1500, 700 };
+    juce::Point<int> previousPosition;
 
     // Calibration
-    void startCalibration();
-    void stopCalibration(bool success);
-
     bool isCalibrating = false;
     float calibrationTimer = 0.0f;
     const float calibrationDuration = 15.0f;
-
-    //std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> muteAttachment;
-
     float tempMinX = 1000.0f, tempMaxX = -1000.0f;
     float tempMinY = 1000.0f, tempMaxY = -1000.0f;
     float tempMinZ = 1000.0f, tempMaxZ = -1000.0f;
 
+    void startCalibration();
+    void stopCalibration(bool success);
+
+    // 3D graphics
+    const float fov = 350.0f;
+    const float camDist = 600.0f;
+    juce::Point<float> centerScreen;
+
+    void updateScaleDropdown();
     void updateConnectionStatus();
     juce::Point<float> projectPoint(Point3D p);
     void draw3DGrid(juce::Graphics& g);
     void draw3DHand(juce::Graphics& g, const HandData& hand, juce::Colour baseColour);
     void drawCalibrationBox3D(juce::Graphics& g);
-
-    const float fov = 350.0f;
-    const float camDist = 600.0f;
-    juce::Point<float> centerScreen;
-    float currentStyle = 0.0f;
-
-    CustomScaleEditor customScaleUI;
-
-    juce::TextButton maximizeButton{ "Maximize" };
-    bool isMaximized = false;
-    juce::Rectangle<int> previousSize{ 1500, 700 }; // Default starting size
-    juce::Point<int> previousPosition;
-
-    ChordBuilder chordBuilderPage;
-    juce::TextButton chordBuilderButton{ "Chord Builder" };
-
-
-    //WaveformComponent waveformComponent;
-
-
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GestureInstrumentAudioProcessorEditor)
 };
