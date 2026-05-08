@@ -6,7 +6,8 @@ A gesture-controlled MIDI and OSC instrument using the Leap Motion Controller.
 # Prerequisites and Hardware Requirements
 Hardware: Ultraleap Motion Controller (Compatible with Leap motion LM-010 controller).
 
-Drivers: You must download and install the official Ultraleap Orion Version 4.1.0. Location: https://www.ultraleap.com/downloads/leap-controller/
+Drivers: You must download and install the official Ultraleap Orion Version 4.1.0. 
+ [Download Ultraleap Orion Here](https://www.ultraleap.com/downloads/leap-controller/)
 
 Note: Ensure your Leap Motion controller is plugged in and the tracking service is running in your system before launching the plugin.
 
@@ -40,7 +41,9 @@ GestureInstrument features a dedicated OSC (Open Sound Control) output mode, all
 
 To use OSC Mode:
 
-Download and install Pure Data (Windows). Location: https://puredata.info/downloads/pure-data
+Download and install Pure Data (Windows).
+
+[Download Pure Data Here](https://puredata.info/downloads/pure-data)
 
 Navigate to the Resources folder included in the GestureInstrument download package.
 
