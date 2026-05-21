@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GestureInstrumentState outputMode="0" currentInstrument="1" rootNote="4" scaleType="2"
+                        currentRangeMode="0" startNote="48" endNote="72" octaveRange="2"
+                        invertNoteTrigger="0" leftXTarget="1" leftYTarget="11" leftZTarget="1"
+                        leftRollTarget="1" leftGrabTarget="1" leftPinchTarget="1" leftThumbTarget="1"
+                        leftIndexTarget="1" leftMiddleTarget="1" leftRingTarget="1" leftPinkyTarget="1"
+                        rightXTarget="1" rightYTarget="13" rightZTarget="1" rightRollTarget="1"
+                        rightGrabTarget="1" rightPinchTarget="1" rightThumbTarget="1"
+                        rightIndexTarget="1" rightMiddleTarget="1" rightRingTarget="1"
+                        rightPinkyTarget="1" minWidthThreshold="-200.0" maxWidthThreshold="200.0"
+                        minHeightThreshold="50.0" maxHeightThreshold="319.7019958496094"
+                        minDepthThreshold="0.0" maxDepthThreshold="150.0" staticVolume="1.0"
+                        staticPan="0.5" staticModulation="0.0" staticExpression="0.0"
+                        staticCutoff="1.0" staticResonance="0.1000000014901161" staticAttack="0.1000000014901161"
+                        staticRelease="0.1000000014901161" staticReverb="0.0" staticChorus="0.0"
+                        staticVibrato="0.0" staticWaveform="0.0" staticDelay="0.0" staticDistortion="0.0"/>

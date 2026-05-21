@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GestureInstrumentState outputMode="0" currentInstrument="92" rootNote="1" scaleType="13"
+                        currentRangeMode="1" startNote="12" endNote="51" octaveRange="4"
+                        invertNoteTrigger="0" isVirtualMouse="0" isGestureToMouseEnabled="1"
+                        virtualMouseGestureType="1" virtualMouseHoldTime="0.800000011920929"
+                        showNoteNames="1" globalMute="0" leftXTarget="11" leftYTarget="1"
+                        leftZTarget="8" leftRollTarget="14" leftGrabTarget="1" leftPinchTarget="1"
+                        leftThumbTarget="1" leftIndexTarget="1" leftMiddleTarget="1"
+                        leftRingTarget="1" leftPinkyTarget="1" rightXTarget="10" rightYTarget="3"
+                        rightZTarget="9" rightRollTarget="15" rightGrabTarget="16" rightPinchTarget="1"
+                        rightThumbTarget="1" rightIndexTarget="1" rightMiddleTarget="1"
+                        rightRingTarget="1" rightPinkyTarget="1" minWidthThreshold="-350.0"
+                        maxWidthThreshold="350.0" minHeightThreshold="50.0" maxHeightThreshold="500.0"
+                        minDepthThreshold="-225.0" maxDepthThreshold="225.0" staticVolume="1.0"
+                        staticPan="0.5600000023841858" staticModulation="0.0" staticExpression="1.0"
+                        staticCutoff="0.0" staticResonance="0.0" staticAttack="1.0" staticRelease="0.9082978367805481"
+                        staticReverb="1.0" staticChorus="1.0" staticVibrato="6.076400609345001e-7"
+                        staticWaveform="0.550000011920929" staticDelay="0.0" staticDistortion="0.4600000083446503"
+                        customScaleIntervals="0,1,2,3,5,6"/>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GestureInstrumentState outputMode="1" currentInstrument="90" rootNote="0" scaleType="3"
+                        currentRangeMode="0" startNote="41" endNote="96" octaveRange="3"
+                        invertNoteTrigger="0" leftXTarget="5" leftYTarget="12" leftZTarget="13"
+                        leftRollTarget="5" leftGrabTarget="14" leftPinchTarget="5" leftThumbTarget="99"
+                        leftIndexTarget="99" leftMiddleTarget="99" leftRingTarget="99"
+                        leftPinkyTarget="99" rightXTarget="7" rightYTarget="2" rightZTarget="8"
+                        rightRollTarget="10" rightGrabTarget="9" rightPinchTarget="11"
+                        rightThumbTarget="99" rightIndexTarget="99" rightMiddleTarget="99"
+                        rightRingTarget="99" rightPinkyTarget="99" minWidthThreshold="-282.2592468261719"
+                        maxWidthThreshold="350.0" minHeightThreshold="59.16755294799805"
+                        maxHeightThreshold="500.0" minDepthThreshold="-56.71790313720703"
+                        maxDepthThreshold="225.0"/>
